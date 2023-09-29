@@ -1,21 +1,19 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE `users` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(100) NOT NULL,
+    `password` VARCHAR(100) NOT NULL,
+    `name` VARCHAR(100) NOT NULL,
+    `token` VARCHAR(255) NULL,
+    `email` VARCHAR(200) NOT NULL,
+    `phone` VARCHAR(100) NOT NULL,
+    `role` ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER',
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-  - You are about to drop the `blog` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `category` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE `blog` DROP FOREIGN KEY `Blog_authorId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `blog` DROP FOREIGN KEY `Blog_categoryId_fkey`;
-
--- DropTable
-DROP TABLE `blog`;
-
--- DropTable
-DROP TABLE `category`;
+    UNIQUE INDEX `users_id_key`(`id`),
+    PRIMARY KEY (`username`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `blogs` (
@@ -30,7 +28,7 @@ CREATE TABLE `blogs` (
     `slug` VARCHAR(100) NOT NULL,
     `featured` BOOLEAN NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `Blog_slug_key`(`slug`),
     INDEX `Blog_authorId_fkey`(`authorId`),

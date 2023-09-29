@@ -14,8 +14,9 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const result = await userService.login(req.body);
+        res.cookie('refreshToken', result.currentUser.token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 })
         res.status(200).json({
-            data: result
+            accessToken: result.accessToken
         });
     } catch (e) {
         next(e);
@@ -23,8 +24,10 @@ const login = async (req, res, next) => {
 }
 
 const get = async (req, res, next) => {
+    // console.log("zzzz")
+    // console.log(req.user);
     try {
-        const username = req.user.username;
+        const username = req.user;
         const result = await userService.get(username);
         res.status(200).json({
             data: result
@@ -36,11 +39,10 @@ const get = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        const username = req.user.username;
-        const request = req.body;
-        request.username = username;
-
-        const result = await userService.update(request);
+        // const username = req.user.username;
+        // const request = req.body;
+        // request.username = username;
+        const result = await userService.update(req);
         res.status(200).json({
             data: result
         });
@@ -51,7 +53,8 @@ const update = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
     try {
-        await userService.logout(req.user.username);
+        await userService.logout(req);
+        res.clearCookie('refreshToken');
         res.status(200).json({
             data: "OK"
         });
