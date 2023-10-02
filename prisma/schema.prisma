@@ -8,49 +8,55 @@ datasource db {
 }
 
 model User {
-  id         Int      @unique @default(autoincrement())
-  username   String   @id @db.VarChar(100)
-  password   String   @db.VarChar(100)
-  name       String   @db.VarChar(100)
-  token      String?  @db.VarChar(255)
-  email      String   @db.VarChar(200)
-  phone      String   @db.VarChar(100)
-  role       Role     @default(USER)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  // email_verified_at DateTime
-  blogs      blog[]
+  id         Int         @unique @default(autoincrement())
+  username   String      @id @db.VarChar(100)
+  password   String      @db.VarChar(100)
+  name       String      @db.VarChar(100)
+  token      String?     @db.VarChar(255)
+  email      String      @db.VarChar(200)
+  phone      String      @db.VarChar(100)
+  role       Role        @default(USER)
+  created_at DateTime    @default(now())
+  updated_at DateTime    @default(now()) @updatedAt
+  education  Education?
+  experience Experience?
+  skills     Skill[]
 
   @@map("users")
 }
 
-model blog {
-  id         Int      @id @default(autoincrement())
-  authorId   Int
-  categoryId Int
-  title      String   @db.VarChar(100)
-  seo_title  String?  @db.VarChar(100)
-  excerpt    String?  @db.VarChar(255)
-  body       String   @db.LongText
-  image      String?  @db.VarChar(100)
-  slug       String   @unique(map: "Blog_slug_key") @db.VarChar(100)
-  featured   Boolean
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-  users      User     @relation(fields: [authorId], references: [id], map: "Blog_authorId_fkey")
-  categories category @relation(fields: [categoryId], references: [id], map: "Blog_categoryId_fkey")
+model Education {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  users           User     @relation(fields: [userId], references: [id])
+  instance_name   String   @db.VarChar(255)
+  education_level String   @db.VarChar(50)
+  major           String   @db.VarChar(255)
+  gpa             Float    @db.Double
+  enrollment_year DateTime @db.Date
+  graduation_year DateTime @db.Date
 
-  @@index([authorId], map: "Blog_authorId_fkey")
-  @@index([categoryId], map: "Blog_categoryId_fkey")
-  @@map("blogs")
+  @@map("educations")
 }
 
-model category {
+model Experience {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  users         User     @relation(fields: [userId], references: [id])
+  instance_name String   @db.VarChar(255)
+  position      String   @db.VarChar(100)
+  start_work    DateTime @db.Date
+  end_work      DateTime @db.Date
+
+  @@map("experiences")
+}
+
+model Skill {
   id    Int    @id @default(autoincrement())
   name  String @db.VarChar(100)
-  blogs blog[]
+  users User[]
 
-  @@map("categories")
+  @@map("skills")
 }
 
 enum Role {
