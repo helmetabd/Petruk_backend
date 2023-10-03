@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id         Int         @unique @default(autoincrement())
-  username   String      @id @db.VarChar(100)
-  password   String      @db.VarChar(100)
-  name       String      @db.VarChar(100)
-  token      String?     @db.VarChar(255)
-  email      String      @db.VarChar(200)
-  phone      String      @db.VarChar(100)
-  role       Role        @default(USER)
-  created_at DateTime    @default(now())
-  updated_at DateTime    @default(now()) @updatedAt
-  education  Education?
-  experience Experience?
-  skills     Skill[]
+  id          Int          @unique @default(autoincrement())
+  username    String       @id @db.VarChar(100)
+  password    String       @db.VarChar(100)
+  name        String       @db.VarChar(100)
+  token       String?      @db.VarChar(255)
+  email       String       @db.VarChar(200)
+  phone       String       @db.VarChar(100)
+  role        Role         @default(USER)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @default(now()) @updatedAt
+  education   Education?
+  experience  Experience?
+  expectation Expectation?
+  skills      Skill[]
 
   @@map("users")
 }
@@ -51,9 +52,18 @@ model Experience {
   @@map("experiences")
 }
 
+model Expectation {
+  id                 Int  @id @default(autoincrement())
+  userId             Int  @unique
+  users              User @relation(fields: [userId], references: [id])
+  salary_expectation Int  @db.Int
+
+  @@map("expectations")
+}
+
 model Skill {
   id    Int    @id @default(autoincrement())
-  name  String @db.VarChar(100)
+  name  String @unique @db.VarChar(100)
   users User[]
 
   @@map("skills")

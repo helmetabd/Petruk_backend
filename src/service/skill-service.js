@@ -4,7 +4,7 @@ import { validate } from "../validation/validation.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { createEducationValidation, getEducationValidation, updateEducationValidation } from "../validation/education-validation.js";
+import { getSkillValidation, skillValidation } from "../validation/skill-validation.js";
 
 const create = async (request) => {
     const cookies = request.cookies;
@@ -22,45 +22,58 @@ const create = async (request) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const userEducation = validate(createEducationValidation, request.body);
+    const userSkill = validate(skillValidation, request.body);
 
-    userEducation.userId = user.id;
+    userSkill.userId = user.id;
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
+    // userSkill.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    // userEducation.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
-
-    await prismaClient.user.update({
+    return prismaClient.user.update({
         where: {
             username: user.username
         },
         data: {
-            updated_at: updated
+            updated_at: updated,
+            skills: {
+                connectOrCreate: userSkill.skill.map((tag) => {
+                    return {
+                        where: { name: tag.name },
+                        create: { name: tag.name }
+                    };
+                })
+            }
+        },
+        select: {
+            name: true,
+            username: true,
+            email: true,
+            skills: true
         }
     });
 
-    return prismaClient.education.create({
-        data: userEducation,
-        select: {
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
-            users: {
-                select: {
-                    name: true,
-                    email: true,
-                }
-            }
-        }
-    })
+    // return prismaClient.skill.create({
+    //     data: userSkill,
+    //     select: {
+    //         instance_name: true,
+    //         skill_level: true,
+    //         major: true,
+    //         gpa: true,
+    //         enrollment_year: true,
+    //         graduation_year: true,
+    //         users: {
+    //             select: {
+    //                 name: true,
+    //                 email: true,
+    //             }
+    //         }
+    //     }
+    // })
 }
 
 const get = async (username) => {
-    const validateUser = validate(getEducationValidation, username);
+    const validateUser = validate(getSkillValidation, username);
 
     const user = await prismaClient.user.findFirst({
         where: {
@@ -75,32 +88,34 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    const education = await prismaClient.education.findUnique({
+    const skill = await prismaClient.skill.findMany({
         where: {
-            userId: getUser.id
+            users: {
+                some: {
+                    id: user.id
+                }
+                // every: {
+                //     id: user.id
+                // }
+            }
         },
         select: {
             id: true,
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
-            users: {
-                select: {
-                    name: true,
-                    email: true,
-                }
-            }
+            name: true,
+            // users: {
+            //     select: {
+            //         name: true,
+            //         email: true,
+            //     }
+            // }
         }
     });
 
-    if (!education) {
+    if (!skill) {
         throw new ResponseError(404, "user is not found");
     }
 
-    return education;
+    return skill;
 }
 
 const update = async (request) => {
@@ -119,43 +134,35 @@ const update = async (request) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const updateEducation = validate(updateEducationValidation, request.body);
+    const updateSkill = validate(skillValidation, request.body);
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    await prismaClient.user.update({
+    return prismaClient.user.update({
         where: {
             username: user.username
         },
         data: {
-            updated_at: updated
-        }
-    })
-
-    return prismaClient.education.update({
-        where: {
-            userId: user.id
-        },
-        data: updateEducation,
-        select: {
-            id: true,
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
-            users: {
-                select: {
-                    name: true,
-                    email: true,
-                }
+            updated_at: updated,
+            skills: {
+                connectOrCreate: updateSkill.skill.map((tag) => {
+                    return {
+                        where: { name: tag.name },
+                        create: { name: tag.name }
+                    };
+                })
             }
+        },
+        select: {
+            name: true,
+            username: true,
+            email: true,
+            skills: true
         }
-    })
+    });
 }
 
-const logout = async (request) => {
+const remove = async (request) => {
     const cookies = request.cookies;
     if (!cookies?.refreshToken) {
         throw new ResponseError(204, "No content!");
@@ -170,12 +177,22 @@ const logout = async (request) => {
         throw new ResponseError(204, "No content!");
     };
 
+    console.log(request.params.id);
+
     return prismaClient.user.update({
         where: {
             username: user.username
         },
         data: {
-            token: null
+            skills: {
+                // set
+                disconnect: {
+                    id: parseInt(request.params.id)
+                },
+                // delete: {
+                //     id: parseInt(request.params.id)
+                // }
+            }
         },
         select: {
             username: true
@@ -187,5 +204,5 @@ export default {
     create,
     get,
     update,
-    logout
+    remove
 }
