@@ -5,8 +5,8 @@ const createEducationValidation = Joi.object({
     education_level: Joi.string().max(50).required(),
     major: Joi.string().max(255).required(),
     gpa: Joi.number().precision(2),
-    enrollment_year: Joi.date(),
-    graduation_year: Joi.date()
+    enrollment_year: Joi.date().required(),
+    graduation_year: Joi.date().required()
 });
 
 const getEducationValidation = Joi.string().max(100).required();
@@ -16,8 +16,8 @@ const updateEducationValidation = Joi.object({
     education_level: Joi.string().max(50).required(),
     major: Joi.string().max(255).required(),
     gpa: Joi.number().precision(2),
-    enrollment_year: Joi.date(),
-    graduation_year: Joi.date()
+    enrollment_year: Joi.date().required(),
+    graduation_year: Joi.date().required()
 })
 
 export {

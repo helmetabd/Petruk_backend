@@ -5,6 +5,8 @@ import educationController from "../controller/education-controller.js";
 import experienceController from "../controller/experience-controller.js";
 import skillController from "../controller/skill-controller.js";
 import expectationController from "../controller/expectation-controller.js";
+import familyController from "../controller/family-controller.js";
+import profileController from "../controller/profile-controller.js";
 
 const userRouter = new express.Router();
 userRouter.use(authMiddleware);
@@ -28,6 +30,16 @@ userRouter.patch('/api/experience', experienceController.update);
 userRouter.get('/api/expectation', expectationController.get);
 userRouter.post('/api/expectation', expectationController.create);
 userRouter.patch('/api/expectation', expectationController.update);
+
+//family api
+userRouter.get('/api/family', familyController.get);
+userRouter.post('/api/family', familyController.create);
+userRouter.patch('/api/family', familyController.update);
+
+//profile api
+userRouter.get('/api/profile', profileController.get);
+userRouter.post('/api/profile', profileController.create);
+userRouter.patch('/api/profile', profileController.update);
 
 //skill api
 userRouter.get('/api/skill', skillController.get);

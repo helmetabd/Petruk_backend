@@ -149,37 +149,8 @@ const update = async (request) => {
     })
 }
 
-const logout = async (request) => {
-    const cookies = request.cookies;
-    if (!cookies?.refreshToken) {
-        throw new ResponseError(204, "No content!");
-    };
-    const refreshTkn = cookies.refreshToken;
-    const user = await prismaClient.user.findFirst({
-        where: {
-            token: refreshTkn,
-        },
-    });
-    if (!user) {
-        throw new ResponseError(204, "No content!");
-    };
-
-    return prismaClient.user.update({
-        where: {
-            username: user.username
-        },
-        data: {
-            token: null
-        },
-        select: {
-            username: true
-        }
-    });
-}
-
 export default {
     create,
     get,
     update,
-    logout
 }

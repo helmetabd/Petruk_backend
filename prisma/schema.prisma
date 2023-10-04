@@ -21,6 +21,8 @@ model User {
   education   Education?
   experience  Experience?
   expectation Expectation?
+  family      Family?
+  profile     Profile?
   skills      Skill[]
 
   @@map("users")
@@ -50,6 +52,31 @@ model Experience {
   end_work      DateTime @db.Date
 
   @@map("experiences")
+}
+
+model Family {
+  id      Int    @id @default(autoincrement())
+  userId  Int    @unique
+  users   User   @relation(fields: [userId], references: [id])
+  name    String @db.VarChar(100)
+  status  String @db.VarChar(30)
+  address String @db.VarChar(255)
+  phone   String @db.VarChar(100)
+
+  @@map("family")
+}
+
+model Profile {
+  id       Int      @id @default(autoincrement())
+  userId   Int      @unique
+  users    User     @relation(fields: [userId], references: [id])
+  birthday DateTime @db.Date
+  age      Int      @db.Int
+  address  String   @db.VarChar(255)
+  image    String   @db.VarChar(255)
+  about    String   @db.LongText
+
+  @@map("profile")
 }
 
 model Expectation {

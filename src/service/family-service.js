@@ -4,7 +4,7 @@ import { validate } from "../validation/validation.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { createEducationValidation, getEducationValidation, updateEducationValidation } from "../validation/education-validation.js";
+import { familyValidation, getFamilyValidation } from "../validation/family-validation.js";
 
 const create = async (request) => {
     const cookies = request.cookies;
@@ -22,14 +22,14 @@ const create = async (request) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const userEducation = validate(createEducationValidation, request.body);
+    const userFamily = validate(familyValidation, request.body);
 
-    userEducation.userId = user.id;
+    userFamily.userId = user.id;
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
 
-    // userEducation.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+    // userFamily.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
     await prismaClient.user.update({
         where: {
@@ -40,15 +40,13 @@ const create = async (request) => {
         }
     });
 
-    return prismaClient.education.create({
-        data: userEducation,
+    return prismaClient.family.create({
+        data: userFamily,
         select: {
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
+            name: true,
+            status: true,
+            address: true,
+            phone: true,
             users: {
                 select: {
                     name: true,
@@ -60,7 +58,7 @@ const create = async (request) => {
 }
 
 const get = async (username) => {
-    const validateUser = validate(getEducationValidation, username);
+    const validateUser = validate(getFamilyValidation, username);
 
     const user = await prismaClient.user.findFirst({
         where: {
@@ -75,18 +73,16 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    const education = await prismaClient.education.findUnique({
+    const family = await prismaClient.family.findUnique({
         where: {
             userId: user.id
         },
         select: {
             id: true,
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
+            name: true,
+            status: true,
+            address: true,
+            phone: true,
             users: {
                 select: {
                     name: true,
@@ -96,11 +92,11 @@ const get = async (username) => {
         }
     });
 
-    if (!education) {
+    if (!family) {
         throw new ResponseError(404, "user is not found");
     }
 
-    return education;
+    return family;
 }
 
 const update = async (request) => {
@@ -119,7 +115,7 @@ const update = async (request) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const updateEducation = validate(updateEducationValidation, request.body);
+    const updatefamily = validate(familyValidation, request.body);
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
@@ -132,19 +128,17 @@ const update = async (request) => {
         }
     })
 
-    return prismaClient.education.update({
+    return prismaClient.family.update({
         where: {
             userId: user.id
         },
-        data: updateEducation,
+        data: updatefamily,
         select: {
             id: true,
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
+            name: true,
+            status: true,
+            address: true,
+            phone: true,
             users: {
                 select: {
                     name: true,
