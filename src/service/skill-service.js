@@ -30,46 +30,35 @@ const create = async (request) => {
 
     // userSkill.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    return prismaClient.user.update({
-        where: {
-            username: user.username
-        },
-        data: {
-            updated_at: updated,
-            skills: {
-                connectOrCreate: userSkill.skill.map((tag) => {
-                    return {
-                        where: { name: tag.name },
-                        create: { name: tag.name }
-                    };
-                })
+    // console.log(userSkill);
+    if (user.role === "ADMIN") {
+        return prismaClient.skill.createMany({
+            data: userSkill.skill,
+        })
+    } else if (user.role === "USER") {
+        return prismaClient.user.update({
+            where: {
+                username: user.username
+            },
+            data: {
+                updated_at: updated,
+                skills: {
+                    connectOrCreate: userSkill.skill.map((tag) => {
+                        return {
+                            where: { name: tag.name },
+                            create: { name: tag.name }
+                        };
+                    })
+                }
+            },
+            select: {
+                name: true,
+                username: true,
+                email: true,
+                skills: true
             }
-        },
-        select: {
-            name: true,
-            username: true,
-            email: true,
-            skills: true
-        }
-    });
-
-    // return prismaClient.skill.create({
-    //     data: userSkill,
-    //     select: {
-    //         instance_name: true,
-    //         skill_level: true,
-    //         major: true,
-    //         gpa: true,
-    //         enrollment_year: true,
-    //         graduation_year: true,
-    //         users: {
-    //             select: {
-    //                 name: true,
-    //                 email: true,
-    //             }
-    //         }
-    //     }
-    // })
+        });
+    }
 }
 
 const get = async (username) => {
@@ -80,7 +69,8 @@ const get = async (username) => {
             username: validateUser
         },
         select: {
-            id: true
+            id: true,
+            role: true
         }
     });
 
@@ -88,34 +78,41 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    const skill = await prismaClient.skill.findMany({
-        where: {
-            users: {
-                some: {
-                    id: user.id
+    if (user.role === "USER") {
+        const skill = await prismaClient.skill.findMany({
+            where: {
+                users: {
+                    some: {
+                        id: user.id
+                    }
                 }
-                // every: {
-                //     id: user.id
-                // }
+            },
+            select: {
+                id: true,
+                name: true,
             }
-        },
-        select: {
-            id: true,
-            name: true,
-            // users: {
-            //     select: {
-            //         name: true,
-            //         email: true,
-            //     }
-            // }
+        });
+
+        if (!skill) {
+            throw new ResponseError(404, "user is not found");
         }
-    });
 
-    if (!skill) {
-        throw new ResponseError(404, "user is not found");
+        return skill;
+
+    } else if (user.role === "ADMIN") {
+        const skill = await prismaClient.skill.findMany({
+            select: {
+                id: true,
+                name: true,
+            }
+        });
+
+        if (!skill) {
+            throw new ResponseError(404, "user is not found");
+        }
+
+        return skill;
     }
-
-    return skill;
 }
 
 const update = async (request) => {
@@ -177,25 +174,69 @@ const remove = async (request) => {
         throw new ResponseError(204, "No content!");
     };
 
-    console.log(request.params.id);
+    // console.log(request.params.id);
 
-    return prismaClient.user.update({
+    if (user.role === "ADMIN") {
+        return prismaClient.skill.delete({
+            where: {
+                id: parseInt(request.params.id)
+            }
+        })
+    } else if (user.role === "USER") {
+        return prismaClient.user.update({
+            where: {
+                username: user.username
+            },
+            data: {
+                skills: {
+                    // set
+                    disconnect: {
+                        id: parseInt(request.params.id)
+                    },
+                    // delete: {
+                    //     id: parseInt(request.params.id)
+                    // }
+                }
+            },
+            select: {
+                username: true
+            }
+        });
+    }
+}
+
+const jobSkillRemove = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    const user = await prismaClient.user.findFirst({
         where: {
-            username: user.username
+            token: refreshTkn,
+        },
+    });
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+
+    // console.log(request.params.id);
+
+    return prismaClient.job.update({
+        where: {
+            id: parseInt(request.params.id),
+            authorId: user.id
         },
         data: {
-            skills: {
+            skill: {
                 // set
                 disconnect: {
-                    id: parseInt(request.params.id)
+                    id: parseInt(request.params.skill)
                 },
                 // delete: {
                 //     id: parseInt(request.params.id)
                 // }
             }
-        },
-        select: {
-            username: true
         }
     });
 }
@@ -204,5 +245,6 @@ export default {
     create,
     get,
     update,
-    remove
+    remove,
+    jobSkillRemove
 }

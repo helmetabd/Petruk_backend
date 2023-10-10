@@ -112,6 +112,29 @@ const get = async (username) => {
     return user;
 }
 
+const getAll = async () => {
+    // username = validate(getUserValidation, username);
+
+    const user = await prismaClient.user.findMany({
+        // where: {
+        //     username: username
+        // },
+        select: {
+            username: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true
+        }
+    });
+
+    if (!user) {
+        throw new ResponseError(404, "users is not found");
+    }
+
+    return user;
+}
+
 const update = async (request) => {
     const cookies = request.cookies;
     if (!cookies?.refreshToken) {
@@ -179,6 +202,7 @@ export default {
     register,
     login,
     get,
+    getAll,
     update,
     logout
 }

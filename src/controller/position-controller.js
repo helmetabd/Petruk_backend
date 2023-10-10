@@ -1,8 +1,9 @@
-import skillService from "../service/skill-service.js";
+import divisionNPositionService from "../service/divisionNPosition-service.js";
 
 const create = async (req, res, next) => {
     try {
-        const result = await skillService.create(req);
+        const position = "position"
+        const result = await divisionNPositionService.create(req, position);
         res.status(200).json({
             data: result
         });
@@ -12,11 +13,11 @@ const create = async (req, res, next) => {
 }
 
 const get = async (req, res, next) => {
-    // console.log("zzzz")
     // console.log(req.user);
     try {
         const username = req.user;
-        const result = await skillService.get(username);
+        const position = "position"
+        const result = await divisionNPositionService.get(username, position);
         res.status(200).json({
             data: result
         });
@@ -27,10 +28,8 @@ const get = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        // const username = req.user.username;
-        // const request = req.body;
-        // request.username = username;
-        const result = await skillService.update(req);
+        const position = "position"
+        const result = await divisionNPositionService.update(req, position);
         res.status(200).json({
             data: result
         });
@@ -42,19 +41,8 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
     try {
         // const skillId = req.params.id;
-        await skillService.remove(req);
-        res.status(200).json({
-            data: "OK"
-        });
-    } catch (e) {
-        next(e);
-    }
-}
-
-const removeJobSkill = async (req, res, next) => {
-    try {
-        // const skillId = req.params.id;
-        await skillService.jobSkillRemove(req);
+        const position = "position"
+        await divisionNPositionService.remove(req, position);
         res.status(200).json({
             data: "OK"
         });
@@ -68,5 +56,4 @@ export default {
     get,
     update,
     remove,
-    removeJobSkill
 }

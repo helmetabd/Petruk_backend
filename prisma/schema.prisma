@@ -8,8 +8,8 @@ datasource db {
 }
 
 model User {
-  id          Int          @unique @default(autoincrement())
-  username    String       @id @db.VarChar(100)
+  id          Int          @id @default(autoincrement())
+  username    String       @unique @db.VarChar(100)
   password    String       @db.VarChar(100)
   name        String       @db.VarChar(100)
   token       String?      @db.VarChar(255)
@@ -23,6 +23,7 @@ model User {
   expectation Expectation?
   family      Family?
   profile     Profile?
+  job         Job[]
   skills      Skill[]
 
   @@map("users")
@@ -92,8 +93,42 @@ model Skill {
   id    Int    @id @default(autoincrement())
   name  String @unique @db.VarChar(100)
   users User[]
+  job   Job[]
 
   @@map("skills")
+}
+
+model Job {
+  id         Int      @id @default(autoincrement())
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   Int
+  salary     Int      @db.Int
+  details    String   @db.LongText
+  skill      Skill[]
+  division   Division @relation(fields: [divisionId], references: [id])
+  divisionId Int
+  position   Position @relation(fields: [positionId], references: [id])
+  positionId Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("jobs")
+}
+
+model Division {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(150)
+  jobs Job[]
+
+  @@map("divisions")
+}
+
+model Position {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(150)
+  jobs Job[]
+
+  @@map("positions")
 }
 
 enum Role {

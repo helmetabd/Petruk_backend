@@ -1,22 +1,10 @@
-import userService from "../service/user-service.js";
+import jobService from "../service/job-service.js";
 
-const register = async (req, res, next) => {
+const create = async (req, res, next) => {
     try {
-        const result = await userService.register(req.body);
+        const result = await jobService.create(req);
         res.status(200).json({
             data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-}
-
-const login = async (req, res, next) => {
-    try {
-        const result = await userService.login(req.body);
-        res.cookie('refreshToken', result.currentUser.token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 })
-        res.status(200).json({
-            accessToken: result.accessToken
         });
     } catch (e) {
         next(e);
@@ -27,8 +15,8 @@ const get = async (req, res, next) => {
     // console.log("zzzz")
     // console.log(req.user);
     try {
-        const username = req.user;
-        const result = await userService.get(username);
+        // const username = req.user;
+        const result = await jobService.get(req);
         res.status(200).json({
             data: result
         });
@@ -42,7 +30,7 @@ const getAll = async (req, res, next) => {
     // console.log(req.user);
     try {
         // const username = req.user;
-        const result = await userService.getAll();
+        const result = await jobService.getAll();
         res.status(200).json({
             data: result
         });
@@ -56,7 +44,7 @@ const update = async (req, res, next) => {
         // const username = req.user.username;
         // const request = req.body;
         // request.username = username;
-        const result = await userService.update(req);
+        const result = await jobService.update(req);
         res.status(200).json({
             data: result
         });
@@ -65,10 +53,10 @@ const update = async (req, res, next) => {
     }
 }
 
-const logout = async (req, res, next) => {
+const remove = async (req, res, next) => {
     try {
-        await userService.logout(req);
-        res.clearCookie('refreshToken');
+        // const skillId = req.params.id;
+        await jobService.remove(req);
         res.status(200).json({
             data: "OK"
         });
@@ -78,10 +66,9 @@ const logout = async (req, res, next) => {
 }
 
 export default {
-    register,
-    login,
+    create,
     get,
     getAll,
     update,
-    logout
+    remove
 }

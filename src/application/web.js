@@ -5,6 +5,8 @@ import { userRouter } from "../route/api.js";
 import cookieParser from "cookie-parser";
 import { refreshRouter } from "../route/refresh.js";
 import multer from "multer";
+import cors from "cors";
+import { adminRouter } from "../route/admin-api.js";
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -25,6 +27,8 @@ const fileFilter = (req, file, cb) => {
 
 export const web = express();
 
+web.use(cors({ origin: 'http://localhost:8080' }));
+
 web.use(express.json());
 
 web.use(cookieParser());
@@ -36,5 +40,7 @@ web.use(publicRouter);
 web.use(refreshRouter);
 
 web.use(userRouter);
+
+web.use(adminRouter);
 
 web.use(errorMiddleware);
