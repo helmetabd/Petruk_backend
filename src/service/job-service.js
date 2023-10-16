@@ -1,9 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { validate } from "../validation/validation.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { createJobValidation, getJobValidation, updateJobValidation } from "../validation/job-validation.js";
 
 const create = async (request) => {
@@ -35,6 +32,47 @@ const create = async (request) => {
     job.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
     // console.log(job);
+
+    // const template = await prismaClient.template.upsert({
+    //     create: {
+    //         name: job.template,
+    //         questionnaire: {
+    //             connectOrCreate: job.questionnaire.map((tag) => {
+    //                 return {
+    //                     where: {
+    //                         question: tag.question,
+    //                     },
+    //                     create: {
+    //                         question: tag.question,
+    //                     }
+    //                 }
+    //             })
+    //         }
+    //     },
+    //     update: {
+    //         name: job.template,
+    //         questionnaire: {
+    //             connectOrCreate: job.questionnaire.map((tag) => {
+    //                 return {
+    //                     where: {
+    //                         question: tag.question,
+    //                     },
+    //                     create: {
+    //                         question: tag.question,
+    //                     }
+    //                 }
+    //             })
+    //         }
+    //     },
+    //     where: {
+    //         name: job.template
+    //     },
+    //     include: {
+    //         questionnaire: true
+    //     }
+    // });
+
+    // console.log(template.questionnaire);
 
     return prismaClient.job.create({
         data: {
@@ -71,6 +109,16 @@ const create = async (request) => {
                         name: job.division,
                     },
                 }
+            },
+            template: {
+                connectOrCreate: {
+                    where: {
+                        name: job.template
+                    },
+                    create: {
+                        name: job.template
+                    }
+                }
             }
         },
         select: {
@@ -86,9 +134,20 @@ const create = async (request) => {
             },
             details: true,
             salary: true,
+            needs: true,
             skill: {
                 select: {
                     name: true
+                }
+            },
+            template: {
+                select: {
+                    name: true,
+                    questionnaire: {
+                        select: {
+                            question: true
+                        }
+                    }
                 }
             },
             author: {
@@ -96,7 +155,9 @@ const create = async (request) => {
                     name: true,
                     email: true,
                 }
-            }
+            },
+            created_at: true,
+            updated_at: true
         }
     })
 }
@@ -109,9 +170,6 @@ const get = async (request) => {
         where: {
             username: validateUser
         },
-        select: {
-            id: true
-        }
     });
 
     // console.log(user);
@@ -138,6 +196,7 @@ const get = async (request) => {
             },
             details: true,
             salary: true,
+            needs: true,
             skill: {
                 select: {
                     name: true
@@ -148,7 +207,18 @@ const get = async (request) => {
                     name: true,
                     email: true,
                 }
-            }
+            },
+            template: {
+                select: {
+                    questionnaire: {
+                        select: {
+                            question: true
+                        }
+                    }
+                }
+            },
+            created_at: true,
+            updated_at: true
         }
     });
 
@@ -179,6 +249,7 @@ const getAll = async () => {
             },
             details: true,
             salary: true,
+            needs: true,
             skill: {
                 select: {
                     name: true
@@ -189,7 +260,18 @@ const getAll = async () => {
                     name: true,
                     email: true,
                 }
-            }
+            },
+            template: {
+                select: {
+                    questionnaire: {
+                        select: {
+                            question: true
+                        }
+                    }
+                }
+            },
+            created_at: true,
+            updated_at: true
         }
     });
 
@@ -240,6 +322,18 @@ const update = async (request) => {
                     };
                 })
             },
+            template: {
+                connectOrCreate: {
+                    connectOrCreate: {
+                        where: {
+                            name: updateJob.template
+                        },
+                        create: {
+                            name: updateJob.template
+                        }
+                    }
+                }
+            }
         },
         select: {
             id: true,
@@ -255,6 +349,7 @@ const update = async (request) => {
             },
             details: true,
             salary: true,
+            needs: true,
             skill: {
                 select: {
                     name: true
@@ -265,7 +360,18 @@ const update = async (request) => {
                     name: true,
                     email: true,
                 }
-            }
+            },
+            template: {
+                select: {
+                    questionnaire: {
+                        select: {
+                            question: true
+                        }
+                    }
+                }
+            },
+            created_at: true,
+            updated_at: true
         }
     })
 }

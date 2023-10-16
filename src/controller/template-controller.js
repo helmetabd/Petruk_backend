@@ -1,9 +1,10 @@
 import divisionNPositionNTemplateService from "../service/divisionNPositionNTemplate-service.js";
+import questionnaireService from "../service/questionnaire-service.js";
 
 const create = async (req, res, next) => {
     try {
-        const division = "division"
-        const result = await divisionNPositionNTemplateService.create(req, division);
+        const template = "template"
+        const result = await divisionNPositionNTemplateService.create(req, template);
         res.status(200).json({
             data: result
         });
@@ -16,8 +17,8 @@ const get = async (req, res, next) => {
     // console.log(req.user);
     try {
         const username = req.user;
-        const division = "division"
-        const result = await divisionNPositionNTemplateService.get(username, division);
+        const template = "template"
+        const result = await divisionNPositionNTemplateService.get(username, template);
         res.status(200).json({
             data: result
         });
@@ -28,8 +29,7 @@ const get = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        const division = "division"
-        const result = await divisionNPositionNTemplateService.update(req, division);
+        const result = await questionnaireService.update(req);
         res.status(200).json({
             data: result
         });
@@ -41,8 +41,8 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
     try {
         // const skillId = req.params.id;
-        const division = "division"
-        await divisionNPositionNTemplateService.remove(req, division);
+        const template = "template"
+        await divisionNPositionNTemplateService.remove(req, template);
         res.status(200).json({
             data: "OK"
         });

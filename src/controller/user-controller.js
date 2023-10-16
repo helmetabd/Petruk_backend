@@ -27,8 +27,8 @@ const get = async (req, res, next) => {
     // console.log("zzzz")
     // console.log(req.user);
     try {
-        const username = req.user;
-        const result = await userService.get(username);
+        // const username = req.user;
+        const result = await userService.get(req);
         res.status(200).json({
             data: result
         });

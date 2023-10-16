@@ -1,9 +1,9 @@
-import divisionNPositionService from "../service/divisionNPosition-service.js";
+import divisionNPositionNTemplateService from "../service/divisionNPositionNTemplate-service.js";
 
 const create = async (req, res, next) => {
     try {
         const position = "position"
-        const result = await divisionNPositionService.create(req, position);
+        const result = await divisionNPositionNTemplateService.create(req, position);
         res.status(200).json({
             data: result
         });
@@ -17,7 +17,7 @@ const get = async (req, res, next) => {
     try {
         const username = req.user;
         const position = "position"
-        const result = await divisionNPositionService.get(username, position);
+        const result = await divisionNPositionNTemplateService.get(username, position);
         res.status(200).json({
             data: result
         });
@@ -29,7 +29,7 @@ const get = async (req, res, next) => {
 const update = async (req, res, next) => {
     try {
         const position = "position"
-        const result = await divisionNPositionService.update(req, position);
+        const result = await divisionNPositionNTemplateService.update(req, position);
         res.status(200).json({
             data: result
         });
@@ -42,7 +42,7 @@ const remove = async (req, res, next) => {
     try {
         // const skillId = req.params.id;
         const position = "position"
-        await divisionNPositionService.remove(req, position);
+        await divisionNPositionNTemplateService.remove(req, position);
         res.status(200).json({
             data: "OK"
         });

@@ -31,26 +31,43 @@ const create = async (request) => {
 
     // userExperience.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    await prismaClient.user.update({
+    return prismaClient.user.update({
         where: {
             username: user.username
         },
         data: {
-            updated_at: updated
-        }
-    })
-
-    return prismaClient.experience.create({
-        data: userExperience,
+            updated_at: updated,
+            experience: {
+                connectOrCreate: userExperience.experience.map((tag) => {
+                    return {
+                        where: {
+                            userId: userExperience.userId,
+                            instance_name: tag.instance_name,
+                            position: tag.position
+                        },
+                        create: {
+                            instance_name: tag.instance_name,
+                            position: tag.position,
+                            salary: tag.salary,
+                            reason: tag.reason,
+                            start_work: tag.start_work,
+                            end_work: tag.end_work
+                        }
+                    }
+                })
+            }
+        },
         select: {
-            instance_name: true,
-            position: true,
-            start_work: true,
-            end_work: true,
-            users: {
+            name: true,
+            nickname: true,
+            experience: {
                 select: {
-                    name: true,
-                    email: true,
+                    instance_name: true,
+                    position: true,
+                    salary: true,
+                    reason: true,
+                    start_work: true,
+                    end_work: true,
                 }
             }
         }
@@ -73,7 +90,7 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    const experience = await prismaClient.experience.findUnique({
+    const experience = await prismaClient.experience.findMany({
         where: {
             userId: user.id
         },
@@ -81,6 +98,8 @@ const get = async (username) => {
             id: true,
             instance_name: true,
             position: true,
+            salary: true,
+            reason: true,
             start_work: true,
             end_work: true,
             users: {
@@ -130,13 +149,16 @@ const update = async (request) => {
 
     return prismaClient.experience.update({
         where: {
-            userId: user.id
+            userId: user.id,
+            id: parseInt(request.params.id)
         },
         data: updateExperience,
         select: {
             id: true,
             instance_name: true,
             position: true,
+            salary: true,
+            reason: true,
             start_work: true,
             end_work: true,
             users: {
@@ -149,8 +171,32 @@ const update = async (request) => {
     })
 }
 
+const remove = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No Content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    // console.log(user);
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+    return prismaClient.experience.delete({
+        where: {
+            id: parseInt(request.params.id)
+        }
+    })
+}
+
 export default {
     create,
     get,
     update,
+    remove
 }

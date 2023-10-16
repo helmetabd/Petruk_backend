@@ -30,6 +30,7 @@ const register = async (request) => {
             id: true,
             username: true,
             name: true,
+            nickname: true,
             email: true,
             role: true,
             phone: true,
@@ -90,8 +91,8 @@ const login = async (request) => {
     return { accessToken, currentUser };
 }
 
-const get = async (username) => {
-    username = validate(getUserValidation, username);
+const get = async (request) => {
+    const username = validate(getUserValidation, request.user);
 
     const user = await prismaClient.user.findUnique({
         where: {
@@ -100,6 +101,7 @@ const get = async (username) => {
         select: {
             username: true,
             name: true,
+            nickname: true,
             email: true,
             phone: true
         }
@@ -122,6 +124,7 @@ const getAll = async () => {
         select: {
             username: true,
             name: true,
+            nickname: true,
             email: true,
             phone: true,
             role: true
@@ -163,6 +166,7 @@ const update = async (request) => {
         select: {
             username: true,
             name: true,
+            nickname: true,
             email: true,
             phone: true,
             updated_at: true

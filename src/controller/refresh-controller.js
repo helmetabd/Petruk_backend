@@ -37,7 +37,7 @@ export const refreshController = async (req, res) => {
             const accessToken = jwt.sign(
                 { "username": decoded.username },
                 process.env.ACCESS_TOKEN_SECRET,
-                { expiresIn: '900s' }
+                { expiresIn: '1h' }
             );
             // console.log(accessToken);
             res.json({ accessToken });

@@ -7,6 +7,7 @@ import skillController from "../controller/skill-controller.js";
 import expectationController from "../controller/expectation-controller.js";
 import familyController from "../controller/family-controller.js";
 import profileController from "../controller/profile-controller.js";
+import courseController from "../controller/course-controller.js";
 
 const userRouter = new express.Router();
 userRouter.use(authMiddleware);
@@ -19,12 +20,14 @@ userRouter.delete('/api/users/logout', userController.logout);
 //education api
 userRouter.get('/api/education', educationController.get);
 userRouter.post('/api/education', educationController.create);
-userRouter.patch('/api/education', educationController.update);
+userRouter.patch('/api/education/:id', educationController.update);
+userRouter.delete('/api/education/:id', educationController.remove);
 
 //experience api
 userRouter.get('/api/experience', experienceController.get);
 userRouter.post('/api/experience', experienceController.create);
-userRouter.patch('/api/experience', experienceController.update);
+userRouter.patch('/api/experience/:id', experienceController.update);
+userRouter.delete('/api/experience/:id', experienceController.remove);
 
 //expectation api
 userRouter.get('/api/expectation', expectationController.get);
@@ -34,7 +37,8 @@ userRouter.patch('/api/expectation', expectationController.update);
 //family api
 userRouter.get('/api/family', familyController.get);
 userRouter.post('/api/family', familyController.create);
-userRouter.patch('/api/family', familyController.update);
+userRouter.patch('/api/family/:id', familyController.update);
+userRouter.delete('/api/family/:id', familyController.remove);
 
 //profile api
 userRouter.get('/api/profile', profileController.get);
@@ -46,6 +50,12 @@ userRouter.get('/api/skill', skillController.get);
 userRouter.post('/api/skill', skillController.create);
 userRouter.patch('/api/skill', skillController.update);
 userRouter.delete('/api/skill/:id', skillController.remove);
+
+//course api
+userRouter.get('/api/course', courseController.get);
+userRouter.post('/api/course', courseController.create);
+userRouter.patch('/api/course/:id', courseController.update);
+userRouter.delete('/api/course/:id', courseController.remove);
 
 export {
     userRouter

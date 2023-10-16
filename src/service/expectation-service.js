@@ -24,32 +24,37 @@ const create = async (request) => {
     };
     const userExpectation = validate(expectationValidation, request.body);
 
-    userExpectation.userId = user.id;
+    // userExpectation.userId = user.id;
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    console.log(userExpectation);
     // userExpectation.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    await prismaClient.user.update({
-        where: {
-            username: user.username
-        },
-        data: {
-            updated_at: updated
-        }
-    });
+    // await prismaClient.user.update({
+    //     where: {
+    //         username: user.username
+    //     },
+    //     data: {
+    //         updated_at: updated
+    //     }
+    // });
+
+    // if (isNaN(parseFloat(userExpectation.salary_expectation))) {
+    //     null
+    // } else {
+    //     userExpectation.salary_expectation = parseFloat(userExpectation.salary_expectation)
+    // }
 
     return prismaClient.expectation.create({
         data: userExpectation,
         select: {
             salary_expectation: true,
-            users: {
-                select: {
-                    name: true,
-                    email: true,
-                }
-            }
+            // users: {
+            //     select: {
+            //         name: true,
+            //         email: true,
+            //     }
+            // }
         }
     })
 }

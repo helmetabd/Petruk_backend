@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { getDivPosValidation, positionAndDivisionValidation } from "../validation/positionNDivision-validation.js";
+import { getDivPosTempValidation, positionDivisionValidationTemplate } from "../validation/positionNDivisionNTemplate-validation.js";
 import { validate } from "../validation/validation.js"
 
 const create = async (request, divpos) => {
@@ -19,7 +19,7 @@ const create = async (request, divpos) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const newDivPos = validate(positionAndDivisionValidation, request.body);
+    const newDivPosTem = validate(positionDivisionValidationTemplate, request.body);
 
     // position.userId = user.id;
 
@@ -29,14 +29,21 @@ const create = async (request, divpos) => {
 
     if (divpos === "division") {
         return prismaClient.division.create({
-            data: newDivPos,
+            data: newDivPosTem,
             select: {
                 name: true,
             }
         });
     } else if (divpos === "position") {
         return prismaClient.position.create({
-            data: newDivPos,
+            data: newDivPosTem,
+            select: {
+                name: true,
+            }
+        });
+    } else if (divpos === "template") {
+        return prismaClient.template.create({
+            data: newDivPosTem,
             select: {
                 name: true,
             }
@@ -45,7 +52,7 @@ const create = async (request, divpos) => {
 }
 
 const get = async (username, divpos) => {
-    const validateUser = validate(getDivPosValidation, username);
+    const validateUser = validate(getDivPosTempValidation, username);
 
     const user = await prismaClient.user.findFirst({
         where: {
@@ -85,9 +92,22 @@ const get = async (username, divpos) => {
         }
 
         return position;
+    } else if (divpos === "template") {
+        const template = await prismaClient.template.findMany({
+            select: {
+                id: true,
+                name: true,
+                questionnaire: true
+            }
+        });
+
+        if (!template) {
+            throw new ResponseError(404, "template is not found");
+        }
+
+        return template;
     }
 }
-
 
 const update = async (request, divpos) => {
     const cookies = request.cookies;
@@ -105,16 +125,16 @@ const update = async (request, divpos) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const updatedivpos = validate(positionAndDivisionValidation, request.body);
+    const updatedivpostemp = validate(positionDivisionValidationTemplate, request.body);
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    if (divpos === division) {
+    if (divpos === "division") {
         return prismaClient.division.update({
             where: {
                 id: parseInt(request.params.id)
             },
-            data: updatedivpos,
+            data: updatedivpostemp,
             select: {
                 id: true,
                 name: true
@@ -125,13 +145,26 @@ const update = async (request, divpos) => {
             where: {
                 id: parseInt(request.params.id)
             },
-            data: updatedivpos,
+            data: updatedivpostemp,
             select: {
                 id: true,
                 name: true
             }
         })
     }
+    // else if (divpos === "template") {
+    //     return prismaClient.template.update({
+    //         where: {
+    //             id: parseInt(request.params.id)
+    //         },
+    //         data: updatedivpostemp,
+    //         select: {
+    //             id: true,
+    //             name: true,
+    //             questionnaire: true
+    //         }
+    //     })
+    // }
 }
 
 const remove = async (request, divpos) => {
@@ -159,6 +192,12 @@ const remove = async (request, divpos) => {
         })
     } else if (divpos === "position") {
         return prismaClient.position.delete({
+            where: {
+                id: parseInt(request.params.id)
+            },
+        });
+    } else if (divpos === "template") {
+        return prismaClient.template.delete({
             where: {
                 id: parseInt(request.params.id)
             },

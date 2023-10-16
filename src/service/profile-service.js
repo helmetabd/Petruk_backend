@@ -57,14 +57,19 @@ const create = async (request) => {
     return prismaClient.profile.create({
         data: userProfile,
         select: {
-            about: true,
-            address: true,
+            address_domisili: true,
+            address_ktp: true,
+            birthplace: true,
+            gender: true,
+            religion: true,
             age: true,
             birthday: true,
             image: true,
+            about: true,
             users: {
                 select: {
                     name: true,
+                    nickname: true,
                     email: true,
                 }
             }
@@ -95,15 +100,20 @@ const get = async (username) => {
         select: {
             username: true,
             name: true,
+            nickname: true,
             email: true,
             phone: true,
             profile: {
                 select: {
-                    address: true,
+                    address_domisili: true,
+                    address_ktp: true,
+                    birthplace: true,
+                    gender: true,
+                    religion: true,
+                    age: true,
+                    birthday: true,
                     image: true,
                     about: true,
-                    birthday: true,
-                    age: true
                 }
             },
             education: {
@@ -144,9 +154,18 @@ const get = async (username) => {
                     phone: true,
                 }
             },
-            expectation: {
+            course: {
+                where: {
+                    users: {
+                        id: user.id
+                    }
+                },
                 select: {
-                    salary_expectation: true
+                    instance_name: true,
+                    type: true,
+                    qualification: true,
+                    start_course: true,
+                    end_course: true
                 }
             }
         }

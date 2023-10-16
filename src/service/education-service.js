@@ -1,9 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { validate } from "../validation/validation.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { createEducationValidation, getEducationValidation, updateEducationValidation } from "../validation/education-validation.js";
 
 const create = async (request) => {
@@ -31,32 +28,47 @@ const create = async (request) => {
 
     // userEducation.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    await prismaClient.user.update({
+    return prismaClient.user.update({
         where: {
             username: user.username
         },
         data: {
-            updated_at: updated
-        }
-    });
-
-    return prismaClient.education.create({
-        data: userEducation,
+            updated_at: updated,
+            education: {
+                connectOrCreate: userEducation.education.map((tag) => {
+                    return {
+                        where: {
+                            userId: userEducation.userId,
+                            instance_name: tag.instance_name,
+                            education_level: tag.education_level,
+                        },
+                        create: {
+                            instance_name: tag.instance_name,
+                            education_level: tag.education_level,
+                            major: tag.major,
+                            gpa: tag.gpa,
+                            enrollment_year: tag.enrollment_year,
+                            graduation_year: tag.graduation_year,
+                        }
+                    }
+                })
+            }
+        },
         select: {
-            instance_name: true,
-            education_level: true,
-            major: true,
-            gpa: true,
-            enrollment_year: true,
-            graduation_year: true,
-            users: {
+            name: true,
+            nickname: true,
+            education: {
                 select: {
-                    name: true,
-                    email: true,
+                    instance_name: true,
+                    education_level: true,
+                    major: true,
+                    gpa: true,
+                    enrollment_year: true,
+                    graduation_year: true,
                 }
             }
         }
-    })
+    });
 }
 
 const get = async (username) => {
@@ -75,7 +87,7 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    const education = await prismaClient.education.findUnique({
+    const education = await prismaClient.education.findMany({
         where: {
             userId: user.id
         },
@@ -90,14 +102,14 @@ const get = async (username) => {
             users: {
                 select: {
                     name: true,
-                    email: true,
+                    nickname: true
                 }
             }
         }
     });
 
     if (!education) {
-        throw new ResponseError(404, "user is not found");
+        throw new ResponseError(404, "education is not found");
     }
 
     return education;
@@ -134,6 +146,7 @@ const update = async (request) => {
 
     return prismaClient.education.update({
         where: {
+            id: parseInt(request.params.id),
             userId: user.id
         },
         data: updateEducation,
@@ -155,8 +168,32 @@ const update = async (request) => {
     })
 }
 
+const remove = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+
+    // console.log(request.params.id);
+    return prismaClient.education.delete({
+        where: {
+            id: parseInt(request.params.id)
+        }
+    })
+}
+
 export default {
     create,
     get,
     update,
+    remove
 }

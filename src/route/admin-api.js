@@ -7,6 +7,8 @@ import skillController from "../controller/skill-controller.js";
 import jobController from "../controller/job-controller.js";
 import divisionController from "../controller/division-controller.js";
 import positionController from "../controller/position-controller.js";
+import templateController from "../controller/template-controller.js";
+import questionnaireController from "../controller/questionnaire-controller.js";
 
 const adminRouter = new express.Router();
 adminRouter.use(authMiddleware);
@@ -43,6 +45,17 @@ adminRouter.get('/api/position', positionController.get);
 adminRouter.post('/api/position', positionController.create);
 adminRouter.patch('/api/position/:id', positionController.update);
 adminRouter.delete('/api/position/:id', positionController.remove);
+
+//template api
+adminRouter.get('/api/template', templateController.get);
+adminRouter.post('/api/template', templateController.create);
+adminRouter.get('/api/template/:id', questionnaireController.get);
+adminRouter.patch('/api/template/:id', templateController.update);
+adminRouter.delete('/api/template/:id', templateController.remove);
+
+//questionnaire api
+adminRouter.post('/api/questionnaire/:id', questionnaireController.create);
+adminRouter.delete('/api/questionnaire/:id', questionnaireController.remove);
 
 export {
     adminRouter
