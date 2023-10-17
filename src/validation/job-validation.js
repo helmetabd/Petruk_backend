@@ -12,6 +12,7 @@ const createJobValidation = Joi.object({
         name: Joi.string().max(100).required()
     })),
     template: Joi.string().max(150).required(),
+    test: Joi.string().max(150).required(),
     // questionnaire: Joi.array().items(
     //     Joi.object({
     //         question: Joi.string().max(255).required()
@@ -39,6 +40,7 @@ const updateJobValidation = Joi.object({
         name: Joi.string().max(100).required()
     })),
     template: Joi.string().max(150).required(),
+    test: Joi.string().max(150).required(),
     // questionnaire: Joi.array().items(
     //     Joi.object({
     //         question: Joi.string().max(255).required()

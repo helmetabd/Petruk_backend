@@ -121,21 +121,25 @@ model Skill {
 }
 
 model Job {
-  id         Int       @id @default(autoincrement())
-  author     User      @relation(fields: [authorId], references: [id])
+  id         Int      @id @default(autoincrement())
+  author     User     @relation(fields: [authorId], references: [id])
   authorId   Int
-  salary     Int       @db.Int
-  details    String    @db.LongText
-  needs      Int       @db.Int
+  salary     Int      @db.Int
+  details    String   @db.LongText
+  needs      Int      @db.Int
   skill      Skill[]
-  division   Division  @relation(fields: [divisionId], references: [id])
+  division   Division @relation(fields: [divisionId], references: [id])
   divisionId Int
-  position   Position  @relation(fields: [positionId], references: [id])
+  position   Position @relation(fields: [positionId], references: [id])
   positionId Int
   // questionnaire Questionnaire[]
-  template   Template?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
+  template   Template @relation(fields: [templateId], references: [id])
+  templateId Int      @unique
+  test       Test     @relation(fields: [testId], references: [id])
+  testId     Int      @unique
+  // template   Template?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
 
   @@map("jobs")
 }
@@ -159,6 +163,7 @@ model Position {
 model Questionnaire {
   id       Int        @id @default(autoincrement())
   question String     @unique @db.VarChar(255)
+  type     Type       @default(Text)
   // template   Template @relation(fields: [templateId], references: [id])
   // templateId Int
   template Template[]
@@ -171,10 +176,31 @@ model Template {
   id            Int             @id @default(autoincrement())
   name          String          @unique @db.VarChar(150)
   questionnaire Questionnaire[]
-  job           Job             @relation(fields: [jobId], references: [id])
-  jobId         Int             @unique
+  // job           Job             @relation(fields: [jobId], references: [id])
+  // jobId         Int             @unique
+  job           Job?
 
   @@map("templates")
+}
+
+model Test_Question {
+  id       Int    @id @default(autoincrement())
+  question String @unique @db.VarChar(255)
+  type     Type   @default(Option)
+  test     Test[]
+
+  @@map("questions")
+}
+
+model Test {
+  id           Int             @id @default(autoincrement())
+  name         String          @unique @db.VarChar(150)
+  questionTest Test_Question[]
+  // job           Job             @relation(fields: [jobId], references: [id])
+  // jobId         Int             @unique
+  job          Job?
+
+  @@map("tests")
 }
 
 enum Role {
@@ -185,4 +211,11 @@ enum Role {
 enum Gender {
   Male
   Female
+}
+
+enum Type {
+  LongText
+  Text
+  Number
+  Option
 }

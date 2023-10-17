@@ -9,6 +9,8 @@ import divisionController from "../controller/division-controller.js";
 import positionController from "../controller/position-controller.js";
 import templateController from "../controller/template-controller.js";
 import questionnaireController from "../controller/questionnaire-controller.js";
+import testController from "../controller/test-controller.js";
+import questionController from "../controller/question-controller.js";
 
 const adminRouter = new express.Router();
 adminRouter.use(authMiddleware);
@@ -55,7 +57,18 @@ adminRouter.delete('/api/template/:id', templateController.remove);
 
 //questionnaire api
 adminRouter.post('/api/questionnaire/:id', questionnaireController.create);
-adminRouter.delete('/api/questionnaire/:id', questionnaireController.remove);
+adminRouter.delete('/api/questionnaire/:id/template/:template', questionnaireController.remove);
+
+//test api
+adminRouter.get('/api/test', testController.get);
+adminRouter.post('/api/test', testController.create);
+adminRouter.get('/api/test/:id', questionController.get);
+adminRouter.patch('/api/test/:id', testController.update);
+adminRouter.delete('/api/test/:id', testController.remove);
+
+//question api
+adminRouter.post('/api/question/:id', questionController.create);
+adminRouter.delete('/api/question/:id/test/:test', questionController.remove);
 
 export {
     adminRouter

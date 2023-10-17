@@ -1,9 +1,9 @@
 import { request } from "express";
-import questionnaireService from "../service/questionnaire-service.js";
+import questionService from "../service/question-service.js";
 
 const create = async (req, res, next) => {
     try {
-        const result = await questionnaireService.create(req);
+        const result = await questionService.create(req);
         res.status(200).json({
             data: result
         });
@@ -17,7 +17,7 @@ const get = async (req, res, next) => {
     // console.log(req.user);
     try {
         // const username = req.user;
-        const result = await questionnaireService.get(req);
+        const result = await questionService.get(req);
         res.status(200).json({
             data: result
         });
@@ -31,7 +31,7 @@ const update = async (req, res, next) => {
         // const username = req.user.username;
         // const request = req.body;
         // request.username = username;
-        const result = await questionnaireService.update(req);
+        const result = await questionService.update(req);
         res.status(200).json({
             data: result
         });
@@ -43,7 +43,7 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
     try {
         // const skillId = req.params.id;
-        await questionnaireService.remove(req);
+        await questionService.remove(req);
         res.status(200).json({
             data: "OK"
         });
@@ -54,7 +54,7 @@ const remove = async (req, res, next) => {
 
 // const removeTemplateQuestion = async (req, res, next) => {
 //     try {
-//         await questionnaireService.templateQuestionRemove(req);
+//         await questionService.templateQuestionRemove(req);
 //         res.status(200).json({
 //             data: "OK"
 //         });

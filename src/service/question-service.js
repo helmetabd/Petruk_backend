@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { createQuestionnaireValidation, getQuestionnaireValidation, updateQuestionnaireValidation } from "../validation/questionnaire-validation.js";
+import { createQuestionsValidation, getQuestionsValidation, updateQuestionsValidation } from "../validation/question-validation.js";
 import { validate } from "../validation/validation.js"
 
 const create = async (request) => {
@@ -19,19 +19,19 @@ const create = async (request) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const templateQuestionnaire = validate(createQuestionnaireValidation, request.body);
+    const testQuestions = validate(createQuestionsValidation, request.body);
 
     // tempplateQuestionnaire.userId = user.id;
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    return prismaClient.template.update({
+    return prismaClient.test.update({
         where: {
             id: parseInt(request.params.id)
         },
         data: {
-            questionnaire: {
-                connectOrCreate: templateQuestionnaire.questionnaire.map((tag) => {
+            questionTest: {
+                connectOrCreate: testQuestions.questions.map((tag) => {
                     return {
                         where: { question: tag.question },
                         create: {
@@ -44,7 +44,7 @@ const create = async (request) => {
         },
         select: {
             name: true,
-            questionnaire: {
+            questionTest: {
                 select: {
                     question: true,
                     type: true
@@ -69,7 +69,7 @@ const create = async (request) => {
 }
 
 const get = async (request) => {
-    const validateUser = validate(getQuestionnaireValidation, request.user);
+    const validateUser = validate(getQuestionsValidation, request.user);
 
     const user = await prismaClient.user.findFirst({
         where: {
@@ -121,13 +121,13 @@ const get = async (request) => {
     //     return skill;
     // }
 
-    const template = await prismaClient.template.findUnique({
+    const test = await prismaClient.test.findUnique({
         where: {
             id: parseInt(request.params.id)
         },
         select: {
             name: true,
-            questionnaire: {
+            questionTest: {
                 select: {
                     question: true,
                     type: true
@@ -150,11 +150,11 @@ const get = async (request) => {
         }
     });
 
-    if (!template) {
-        throw new ResponseError(404, "template is not found");
+    if (!test) {
+        throw new ResponseError(404, "test is not found");
     }
 
-    return template;
+    return test;
 }
 
 const update = async (request) => {
@@ -173,18 +173,18 @@ const update = async (request) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const updatedTemplate = validate(updateQuestionnaireValidation, request.body);
+    const updatedTest = validate(updateQuestionsValidation, request.body);
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    return prismaClient.template.update({
+    return prismaClient.test.update({
         where: {
             id: parseInt(request.params.id)
         },
         data: {
-            name: updatedTemplate.name,
-            questionnaire: {
-                connectOrCreate: updatedTemplate.questionnaire.map((tag) => {
+            name: updatedTest.name,
+            questionTest: {
+                connectOrCreate: updatedTest.questions.map((tag) => {
                     return {
                         where: { question: tag.question },
                         create: {
@@ -197,7 +197,7 @@ const update = async (request) => {
         },
         select: {
             name: true,
-            questionnaire: {
+            questionTest: {
                 select: {
                     question: true,
                     type: true
@@ -236,9 +236,9 @@ const remove = async (request) => {
         throw new ResponseError(204, "No content!");
     };
 
-    const questionnarieInTemplate = await prismaClient.template.count({
+    const questionInTest = await prismaClient.test.count({
         where: {
-            questionnaire: {
+            questionTest: {
                 some: {
                     id: parseInt(request.params.id)
                 }
@@ -246,21 +246,21 @@ const remove = async (request) => {
         }
     })
 
-    if (questionnarieInTemplate > 1) {
-        return prismaClient.template.update({
+    if (questionInTest > 1) {
+        return prismaClient.test.update({
             where: {
-                id: parseInt(request.params.template),
+                id: parseInt(request.params.test),
             },
             data: {
-                questionnaire: {
+                questionTest: {
                     disconnect: {
                         id: parseInt(request.params.id)
                     },
                 }
             }
         });
-    } else if (questionnarieInTemplate === 1) {
-        return prismaClient.questionnaire.delete({
+    } else if (questionInTest === 1) {
+        return prismaClient.test_Question.delete({
             where: {
                 id: parseInt(request.params.id)
             }
@@ -268,7 +268,7 @@ const remove = async (request) => {
     }
 }
 
-// const templateQuestionRemove = async (request) => {
+// const testQuestionRemove = async (request) => {
 //     const cookies = request.cookies;
 //     if (!cookies?.refreshToken) {
 //         throw new ResponseError(204, "No content!");
@@ -283,7 +283,7 @@ const remove = async (request) => {
 //         throw new ResponseError(204, "No content!");
 //     };
 
-//     return prismaClient.template.update({
+//     return prismaClient.test.update({
 //         where: {
 //             id: parseInt(request.params.id),
 //         },
@@ -302,5 +302,5 @@ export default {
     get,
     update,
     remove,
-    // templateQuestionRemove
+    // testQuestionRemove
 }

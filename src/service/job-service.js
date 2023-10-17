@@ -119,6 +119,16 @@ const create = async (request) => {
                         name: job.template
                     }
                 }
+            },
+            test: {
+                connectOrCreate: {
+                    where: {
+                        name: job.test
+                    },
+                    create: {
+                        name: job.test
+                    }
+                }
             }
         },
         select: {
@@ -145,7 +155,19 @@ const create = async (request) => {
                     name: true,
                     questionnaire: {
                         select: {
-                            question: true
+                            question: true,
+                            type: true
+                        }
+                    }
+                }
+            },
+            test: {
+                select: {
+                    name: true,
+                    questionTest: {
+                        select: {
+                            question: true,
+                            type: true
                         }
                     }
                 }
@@ -212,7 +234,18 @@ const get = async (request) => {
                 select: {
                     questionnaire: {
                         select: {
-                            question: true
+                            question: true,
+                            type: true
+                        }
+                    }
+                }
+            },
+            test: {
+                select: {
+                    questionTest: {
+                        select: {
+                            question: true,
+                            type: true
                         }
                     }
                 }
@@ -237,6 +270,7 @@ const getAll = async () => {
         //     jobname: jobname
         // },
         select: {
+            id: true,
             position: {
                 select: {
                     name: true
@@ -265,7 +299,18 @@ const getAll = async () => {
                 select: {
                     questionnaire: {
                         select: {
-                            question: true
+                            question: true,
+                            type: true
+                        }
+                    }
+                }
+            },
+            test: {
+                select: {
+                    questionTest: {
+                        select: {
+                            question: true,
+                            type: true
                         }
                     }
                 }
@@ -333,6 +378,18 @@ const update = async (request) => {
                         }
                     }
                 }
+            },
+            test: {
+                connectOrCreate: {
+                    connectOrCreate: {
+                        where: {
+                            name: updateJob.test
+                        },
+                        create: {
+                            name: updateJob.test
+                        }
+                    }
+                }
             }
         },
         select: {
@@ -365,7 +422,18 @@ const update = async (request) => {
                 select: {
                     questionnaire: {
                         select: {
-                            question: true
+                            question: true,
+                            type: true
+                        }
+                    }
+                }
+            },
+            test: {
+                select: {
+                    questionTest: {
+                        select: {
+                            question: true,
+                            type: true
                         }
                     }
                 }

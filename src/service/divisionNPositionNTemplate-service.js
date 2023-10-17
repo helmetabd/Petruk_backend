@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { getDivPosTempValidation, positionDivisionValidationTemplate } from "../validation/positionNDivisionNTemplate-validation.js";
+import { getDivPosTempTestValidation, positionDivisionTemplateTestValidation } from "../validation/positionNDivisionNTemplate-validation.js";
 import { validate } from "../validation/validation.js"
 
 const create = async (request, divpos) => {
@@ -19,7 +19,7 @@ const create = async (request, divpos) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const newDivPosTem = validate(positionDivisionValidationTemplate, request.body);
+    const newDivPosTemTes = validate(positionDivisionTemplateTestValidation, request.body);
 
     // position.userId = user.id;
 
@@ -29,21 +29,28 @@ const create = async (request, divpos) => {
 
     if (divpos === "division") {
         return prismaClient.division.create({
-            data: newDivPosTem,
+            data: newDivPosTemTes,
             select: {
                 name: true,
             }
         });
     } else if (divpos === "position") {
         return prismaClient.position.create({
-            data: newDivPosTem,
+            data: newDivPosTemTes,
             select: {
                 name: true,
             }
         });
     } else if (divpos === "template") {
         return prismaClient.template.create({
-            data: newDivPosTem,
+            data: newDivPosTemTes,
+            select: {
+                name: true,
+            }
+        });
+    } else if (divpos === "test") {
+        return prismaClient.test.create({
+            data: newDivPosTemTes,
             select: {
                 name: true,
             }
@@ -52,7 +59,7 @@ const create = async (request, divpos) => {
 }
 
 const get = async (username, divpos) => {
-    const validateUser = validate(getDivPosTempValidation, username);
+    const validateUser = validate(getDivPosTempTestValidation, username);
 
     const user = await prismaClient.user.findFirst({
         where: {
@@ -106,6 +113,20 @@ const get = async (username, divpos) => {
         }
 
         return template;
+    } else if (divpos === "test") {
+        const test = await prismaClient.test.findMany({
+            select: {
+                id: true,
+                name: true,
+                questionTest: true
+            }
+        });
+
+        if (!test) {
+            throw new ResponseError(404, "test is not found");
+        }
+
+        return test;
     }
 }
 
@@ -125,7 +146,7 @@ const update = async (request, divpos) => {
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
-    const updatedivpostemp = validate(positionDivisionValidationTemplate, request.body);
+    const updatedivpostemp = validate(positionDivisionTemplateTestValidation, request.body);
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
@@ -198,6 +219,12 @@ const remove = async (request, divpos) => {
         });
     } else if (divpos === "template") {
         return prismaClient.template.delete({
+            where: {
+                id: parseInt(request.params.id)
+            },
+        });
+    } else if (divpos === "test") {
+        return prismaClient.test.delete({
             where: {
                 id: parseInt(request.params.id)
             },
