@@ -203,7 +203,7 @@ const get = async (request) => {
     const job = await prismaClient.job.findUnique({
         where: {
             id: parseInt(request.params.id),
-            authorId: user.id
+            // authorId: user.id
         },
         select: {
             position: {
@@ -245,7 +245,8 @@ const get = async (request) => {
                     questionTest: {
                         select: {
                             question: true,
-                            type: true
+                            type: true,
+                            options: true
                         }
                     }
                 }

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "src/main.js",
   "scripts": {
-    "test": "jest -i"
+    "test": "jest -i",
+    "nodemon": "nodemon src/main.js localhost 3000"
   },
   "jest": {
     "transform": {
@@ -14,7 +15,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^5.3.1",
+    "@prisma/client": "^5.4.2",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

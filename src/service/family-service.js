@@ -38,8 +38,11 @@ const create = async (request) => {
                 connectOrCreate: userFamily.family.map((tag) => {
                     return {
                         where: {
-                            userId: userFamily.userId,
-                            name: tag.name
+                            userId_name_status: {
+                                userId: userFamily.userId,
+                                name: tag.name,
+                                status: tag.status
+                            }
                         },
                         create: {
                             name: tag.name,

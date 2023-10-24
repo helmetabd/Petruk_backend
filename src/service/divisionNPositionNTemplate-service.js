@@ -118,7 +118,11 @@ const get = async (username, divpos) => {
             select: {
                 id: true,
                 name: true,
-                questionTest: true
+                questionTest: {
+                    include: {
+                        options: true
+                    }
+                }
             }
         });
 

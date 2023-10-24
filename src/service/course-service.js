@@ -38,9 +38,11 @@ const create = async (request) => {
                 connectOrCreate: userCourse.course.map((tag) => {
                     return {
                         where: {
-                            userId: userCourse.userId,
-                            instance_name: tag.instance_name,
-                            type: tag.type,
+                            userId_instance_name_type: {
+                                userId: userCourse.userId,
+                                instance_name: tag.instance_name,
+                                type: tag.type,
+                            }
                         },
                         create: {
                             instance_name: tag.instance_name,

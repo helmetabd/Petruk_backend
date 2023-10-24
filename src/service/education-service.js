@@ -25,9 +25,50 @@ const create = async (request) => {
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
+    // const findDuplicate = await prismaClient.education.count({
+    //     where: userEducation.education.map((tag) => {
+    //         return {
+    //             userId: userEducation.userId,
+    //             instance_name: tag.instance_name,
+    //             education_level: tag.education_level,
+    //             major: tag.major,
+    //             gpa: tag.gpa,
+    //             enrollment_year: tag.enrollment_year,
+    //             graduation_year: tag.graduation_year,
+    //         }
+    //     }),
+    // })
+
+    // console.log(userEducation.education)
+
+    // await userEducation.education.map((tag) => {
+    //     return prismaClient.education.count({
+    //         where: {
+    //             userId: userEducation.userId,
+    //             instance_name: tag.instance_name,
+    //             education_level: tag.education_level,
+    //             major: tag.major,
+    //             gpa: tag.gpa,
+    //             enrollment_year: tag.enrollment_year,
+    //             graduation_year: tag.graduation_year,
+    //         }
+    //     })
+    //     if (find !== 0) {
+    //         throw new ResponseError(204, "Education exist!");
+    //     }
+    // })
+    // console.log(findDuplicate);
+    // if (findDuplicate) {
+    //     throw new ResponseError(204, "Education exist!");
+    // }
+
 
     // userEducation.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
+    // await prismaClient.education.createMany({
+    //     data: userEducation.education,
+    //     skipDuplicates: true
+    // })
     return prismaClient.user.update({
         where: {
             username: user.username
@@ -38,9 +79,11 @@ const create = async (request) => {
                 connectOrCreate: userEducation.education.map((tag) => {
                     return {
                         where: {
-                            userId: userEducation.userId,
-                            instance_name: tag.instance_name,
-                            education_level: tag.education_level,
+                            instance_name_userId_education_level: {
+                                userId: userEducation.userId,
+                                instance_name: tag.instance_name,
+                                education_level: tag.education_level,
+                            }
                         },
                         create: {
                             instance_name: tag.instance_name,
@@ -50,6 +93,16 @@ const create = async (request) => {
                             enrollment_year: tag.enrollment_year,
                             graduation_year: tag.graduation_year,
                         }
+                        // create: userEducation.education.map((tag) => {
+                        //     return {
+                        //         instance_name: tag.instance_name,
+                        //         education_level: tag.education_level,
+                        //         major: tag.major,
+                        //         gpa: tag.gpa,
+                        //         enrollment_year: tag.enrollment_year,
+                        //         graduation_year: tag.graduation_year,
+                        //     }
+                        // })
                     }
                 })
             }

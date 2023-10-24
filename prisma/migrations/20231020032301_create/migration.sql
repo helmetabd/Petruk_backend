@@ -37,7 +37,7 @@ CREATE TABLE `profile` (
 -- CreateTable
 CREATE TABLE `educations` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NOT NULL,
+    `userId` INTEGER NULL,
     `instance_name` VARCHAR(255) NOT NULL,
     `education_level` VARCHAR(50) NOT NULL,
     `major` VARCHAR(255) NOT NULL,
@@ -45,7 +45,25 @@ CREATE TABLE `educations` (
     `enrollment_year` DATE NOT NULL,
     `graduation_year` DATE NOT NULL,
 
-    UNIQUE INDEX `educations_userId_key`(`userId`),
+    UNIQUE INDEX `educations_instance_name_key`(`instance_name`),
+    UNIQUE INDEX `educations_education_level_key`(`education_level`),
+    INDEX `educations_userId_idx`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `courses` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `instance_name` VARCHAR(255) NOT NULL,
+    `type` VARCHAR(255) NOT NULL,
+    `qualification` VARCHAR(10) NOT NULL,
+    `start_course` DATE NOT NULL,
+    `end_course` DATE NOT NULL,
+
+    UNIQUE INDEX `courses_userId_key`(`userId`),
+    UNIQUE INDEX `courses_instance_name_key`(`instance_name`),
+    UNIQUE INDEX `courses_type_key`(`type`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -61,6 +79,8 @@ CREATE TABLE `experiences` (
     `end_work` DATE NOT NULL,
 
     UNIQUE INDEX `experiences_userId_key`(`userId`),
+    UNIQUE INDEX `experiences_instance_name_key`(`instance_name`),
+    UNIQUE INDEX `experiences_position_key`(`position`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -75,13 +95,14 @@ CREATE TABLE `family` (
     `work` VARCHAR(100) NOT NULL,
 
     UNIQUE INDEX `family_userId_key`(`userId`),
+    UNIQUE INDEX `family_name_key`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `expectations` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `salary_expectation` INTEGER NOT NULL,
+    `salary_expectation` VARCHAR(10) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -101,13 +122,16 @@ CREATE TABLE `jobs` (
     `authorId` INTEGER NOT NULL,
     `salary` INTEGER NOT NULL,
     `details` LONGTEXT NOT NULL,
+    `needs` INTEGER NOT NULL,
     `divisionId` INTEGER NOT NULL,
     `positionId` INTEGER NOT NULL,
     `templateId` INTEGER NOT NULL,
+    `testId` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `jobs_templateId_key`(`templateId`),
+    UNIQUE INDEX `jobs_testId_key`(`testId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -130,20 +154,63 @@ CREATE TABLE `positions` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Questionnaire` (
+CREATE TABLE `questionnaires` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `question` VARCHAR(255) NOT NULL,
+    `type` ENUM('LongText', 'Text', 'Number', 'Option') NOT NULL DEFAULT 'Text',
 
-    UNIQUE INDEX `Questionnaire_question_key`(`question`),
+    UNIQUE INDEX `questionnaires_question_key`(`question`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Template` (
+CREATE TABLE `templates` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(150) NOT NULL,
 
-    UNIQUE INDEX `Template_name_key`(`name`),
+    UNIQUE INDEX `templates_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `questions` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `question` VARCHAR(255) NOT NULL,
+    `type` ENUM('LongText', 'Text', 'Number', 'Option') NOT NULL DEFAULT 'Option',
+
+    UNIQUE INDEX `questions_question_key`(`question`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `tests` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(150) NOT NULL,
+
+    UNIQUE INDEX `tests_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `options` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `option` VARCHAR(255) NOT NULL,
+
+    UNIQUE INDEX `options_option_key`(`option`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `applicants` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `application_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `status` ENUM('Submitted', 'Interview', 'Hold', 'Placed') NOT NULL,
+    `description` VARCHAR(255) NOT NULL,
+    `jobId` INTEGER NOT NULL,
+    `userId` INTEGER NOT NULL,
+
+    UNIQUE INDEX `applicants_jobId_key`(`jobId`),
+    UNIQUE INDEX `applicants_userId_key`(`userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -174,11 +241,32 @@ CREATE TABLE `_QuestionnaireToTemplate` (
     INDEX `_QuestionnaireToTemplate_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `_TestToTest_Question` (
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
+
+    UNIQUE INDEX `_TestToTest_Question_AB_unique`(`A`, `B`),
+    INDEX `_TestToTest_Question_B_index`(`B`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `_OptionsToTest_Question` (
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
+
+    UNIQUE INDEX `_OptionsToTest_Question_AB_unique`(`A`, `B`),
+    INDEX `_OptionsToTest_Question_B_index`(`B`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `profile` ADD CONSTRAINT `profile_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `educations` ADD CONSTRAINT `educations_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `educations` ADD CONSTRAINT `educations_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `courses` ADD CONSTRAINT `courses_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `experiences` ADD CONSTRAINT `experiences_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -196,7 +284,16 @@ ALTER TABLE `jobs` ADD CONSTRAINT `jobs_divisionId_fkey` FOREIGN KEY (`divisionI
 ALTER TABLE `jobs` ADD CONSTRAINT `jobs_positionId_fkey` FOREIGN KEY (`positionId`) REFERENCES `positions`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `jobs` ADD CONSTRAINT `jobs_templateId_fkey` FOREIGN KEY (`templateId`) REFERENCES `Template`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `jobs` ADD CONSTRAINT `jobs_templateId_fkey` FOREIGN KEY (`templateId`) REFERENCES `templates`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `jobs` ADD CONSTRAINT `jobs_testId_fkey` FOREIGN KEY (`testId`) REFERENCES `tests`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `applicants` ADD CONSTRAINT `applicants_jobId_fkey` FOREIGN KEY (`jobId`) REFERENCES `jobs`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `applicants` ADD CONSTRAINT `applicants_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_SkillToUser` ADD CONSTRAINT `_SkillToUser_A_fkey` FOREIGN KEY (`A`) REFERENCES `skills`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -211,7 +308,19 @@ ALTER TABLE `_JobToSkill` ADD CONSTRAINT `_JobToSkill_A_fkey` FOREIGN KEY (`A`) 
 ALTER TABLE `_JobToSkill` ADD CONSTRAINT `_JobToSkill_B_fkey` FOREIGN KEY (`B`) REFERENCES `skills`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_QuestionnaireToTemplate` ADD CONSTRAINT `_QuestionnaireToTemplate_A_fkey` FOREIGN KEY (`A`) REFERENCES `Questionnaire`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_QuestionnaireToTemplate` ADD CONSTRAINT `_QuestionnaireToTemplate_A_fkey` FOREIGN KEY (`A`) REFERENCES `questionnaires`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_QuestionnaireToTemplate` ADD CONSTRAINT `_QuestionnaireToTemplate_B_fkey` FOREIGN KEY (`B`) REFERENCES `Template`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_QuestionnaireToTemplate` ADD CONSTRAINT `_QuestionnaireToTemplate_B_fkey` FOREIGN KEY (`B`) REFERENCES `templates`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_TestToTest_Question` ADD CONSTRAINT `_TestToTest_Question_A_fkey` FOREIGN KEY (`A`) REFERENCES `tests`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_TestToTest_Question` ADD CONSTRAINT `_TestToTest_Question_B_fkey` FOREIGN KEY (`B`) REFERENCES `questions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_OptionsToTest_Question` ADD CONSTRAINT `_OptionsToTest_Question_A_fkey` FOREIGN KEY (`A`) REFERENCES `options`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_OptionsToTest_Question` ADD CONSTRAINT `_OptionsToTest_Question_B_fkey` FOREIGN KEY (`B`) REFERENCES `questions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

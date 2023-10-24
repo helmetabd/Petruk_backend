@@ -8,6 +8,8 @@ import expectationController from "../controller/expectation-controller.js";
 import familyController from "../controller/family-controller.js";
 import profileController from "../controller/profile-controller.js";
 import courseController from "../controller/course-controller.js";
+import jobController from "../controller/job-controller.js";
+import applicantController from "../controller/applicant-controller.js";
 
 const userRouter = new express.Router();
 userRouter.use(authMiddleware);
@@ -56,6 +58,15 @@ userRouter.get('/api/course', courseController.get);
 userRouter.post('/api/course', courseController.create);
 userRouter.patch('/api/course/:id', courseController.update);
 userRouter.delete('/api/course/:id', courseController.remove);
+
+//job api
+userRouter.get('/api/job/:id', jobController.get);
+userRouter.get('/api/job', jobController.getAll);
+
+//applicant api
+userRouter.post('/api/job/:id', applicantController.create);
+userRouter.get('/api/applicant', applicantController.getAll);
+userRouter.get('/api/applicant/:id', applicantController.get);
 
 export {
     userRouter

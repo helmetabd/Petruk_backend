@@ -52,21 +52,33 @@ const remove = async (req, res, next) => {
     }
 }
 
-// const removeTemplateQuestion = async (req, res, next) => {
-//     try {
-//         await questionService.templateQuestionRemove(req);
-//         res.status(200).json({
-//             data: "OK"
-//         });
-//     } catch (e) {
-//         next(e);
-//     }
-// }
+const removeQuestionOption = async (req, res, next) => {
+    try {
+        await questionService.questionOptionsRemove(req);
+        res.status(200).json({
+            data: "OK"
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const updateQuestionOption = async (req, res, next) => {
+    try {
+        await questionService.questionOptionsUpdate(req);
+        res.status(200).json({
+            data: "OK"
+        });
+    } catch (e) {
+        next(e);
+    }
+}
 
 export default {
     create,
     get,
     update,
     remove,
-    // removeTemplateQuestion
+    removeQuestionOption,
+    updateQuestionOption
 }

@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { createQuestionsValidation, getQuestionsValidation, updateQuestionsValidation } from "../validation/question-validation.js";
+import { createQuestionsValidation, getQuestionsValidation, updateOptionValidation, updateQuestionsValidation } from "../validation/question-validation.js";
 import { validate } from "../validation/validation.js"
 
 const create = async (request) => {
@@ -21,7 +21,8 @@ const create = async (request) => {
     };
     const testQuestions = validate(createQuestionsValidation, request.body);
 
-    // tempplateQuestionnaire.userId = user.id;
+    // tempplateQuestionnaire.userId = user.id;]
+    // console.log(testQuestions)
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
@@ -36,7 +37,15 @@ const create = async (request) => {
                         where: { question: tag.question },
                         create: {
                             question: tag.question,
-                            type: tag.type
+                            type: tag.type,
+                            options: {
+                                connectOrCreate: tag.options?.map((tags) => {
+                                    return {
+                                        where: { option: tags.option },
+                                        create: { option: tags.option }
+                                    }
+                                })
+                            }
                         }
                     };
                 })
@@ -47,7 +56,8 @@ const create = async (request) => {
             questionTest: {
                 select: {
                     question: true,
-                    type: true
+                    type: true,
+                    options: true
                 }
             },
             job: {
@@ -129,8 +139,10 @@ const get = async (request) => {
             name: true,
             questionTest: {
                 select: {
+                    id: true,
                     question: true,
-                    type: true
+                    type: true,
+                    options: true
                 }
             },
             job: {
@@ -189,10 +201,18 @@ const update = async (request) => {
                         where: { question: tag.question },
                         create: {
                             question: tag.question,
-                            type: tag.type
+                            type: tag.type,
+                            options: {
+                                connectOrCreate: tag.options?.map((tags) => {
+                                    return {
+                                        where: { option: tags.option },
+                                        create: { option: tags.option }
+                                    }
+                                })
+                            }
                         }
                     };
-                })
+                }),
             }
         },
         select: {
@@ -200,7 +220,8 @@ const update = async (request) => {
             questionTest: {
                 select: {
                     question: true,
-                    type: true
+                    type: true,
+                    options: true
                 }
             },
             job: {
@@ -268,39 +289,133 @@ const remove = async (request) => {
     }
 }
 
-// const testQuestionRemove = async (request) => {
-//     const cookies = request.cookies;
-//     if (!cookies?.refreshToken) {
-//         throw new ResponseError(204, "No content!");
-//     };
-//     const refreshTkn = cookies.refreshToken;
-//     const user = await prismaClient.user.findFirst({
-//         where: {
-//             token: refreshTkn,
-//         },
-//     });
-//     if (!user) {
-//         throw new ResponseError(204, "No content!");
-//     };
+const questionOptionsUpdate = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    // console.log(refreshTkn);
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    // console.log(user);
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+    const updatedQuestion = validate(updateOptionValidation, request.body);
 
-//     return prismaClient.test.update({
-//         where: {
-//             id: parseInt(request.params.id),
-//         },
-//         data: {
-//             questionnaire: {
-//                 disconnect: {
-//                     id: parseInt(request.params.questionnaire)
-//                 },
-//             }
-//         }
-//     });
-// }
+    const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+
+    // console.log(request.params)
+    return prismaClient.test_Question.upsert({
+        where: {
+            test: {
+                some: {
+                    id: parseInt(request.params.id)
+                }
+            },
+            question: updatedQuestion.question
+        },
+        create: {
+            test: {
+                connect: {
+                    id: parseInt(request.params.id)
+                }
+            },
+            question: updatedQuestion.question,
+            type: updatedQuestion.type,
+            options: {
+                connectOrCreate: updatedQuestion.options.map((tag) => {
+                    return {
+                        where: { option: tag.option },
+                        create: { option: tag.option }
+                    }
+                }),
+            }
+        },
+        update: {
+            question: updatedQuestion.question,
+            type: updatedQuestion.type,
+            options: {
+                connectOrCreate: updatedQuestion.options.map((tag) => {
+                    return {
+                        where: { option: tag.option },
+                        create: { option: tag.option }
+                    }
+                }),
+            }
+        },
+        // include: {
+        //     test: true
+        // },
+        select: {
+            test: {
+                select: {
+                    name: true,
+                    questionTest: {
+                        select: {
+                            question: true,
+                            type: true,
+                            options: true
+                        }
+                    },
+                    job: {
+                        select: {
+                            position: {
+                                select: {
+                                    name: true
+                                }
+                            },
+                            division: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+const questionOptionsRemove = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+
+    return prismaClient.test_Question.update({
+        where: {
+            id: parseInt(request.params.id),
+        },
+        data: {
+            options: {
+                disconnect: {
+                    id: parseInt(request.params.option),
+                },
+            }
+        }
+    });
+}
 
 export default {
     create,
     get,
     update,
     remove,
-    // testQuestionRemove
+    questionOptionsRemove,
+    questionOptionsUpdate
 }

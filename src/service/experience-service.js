@@ -1,9 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { validate } from "../validation/validation.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { createExperienceValidation, getExperienceValidation, updateExperienceValidation } from "../validation/experience-validation.js";
 
 const create = async (request) => {
@@ -41,9 +38,11 @@ const create = async (request) => {
                 connectOrCreate: userExperience.experience.map((tag) => {
                     return {
                         where: {
-                            userId: userExperience.userId,
-                            instance_name: tag.instance_name,
-                            position: tag.position
+                            userId_instance_name_position: {
+                                userId: userExperience.userId,
+                                instance_name: tag.instance_name,
+                                position: tag.position
+                            }
                         },
                         create: {
                             instance_name: tag.instance_name,

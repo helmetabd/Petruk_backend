@@ -1,9 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { validate } from "../validation/validation.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { getProfileValidation, profileValidation, updateProfileValidation } from "../validation/profile-validation.js";
 
 const create = async (request) => {
