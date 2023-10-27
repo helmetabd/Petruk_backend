@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { getUserValidation, loginUserValidation, registerUserValidation, updateUserValidation } from "../validation/user-validation.js";
+import { createAdminValidation, createSuperValidation, getUserValidation, loginUserValidation, registerUserValidation, updateUserValidation } from "../validation/user-validation.js";
 import { validate } from "../validation/validation.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
@@ -21,6 +21,8 @@ const register = async (request) => {
 
     user.password = await bcrypt.hash(user.password, 10);
 
+    user.role = 'USER'
+
     user.created_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
     user.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
@@ -38,7 +40,6 @@ const register = async (request) => {
             updated_at: true
         }
     })
-
 }
 
 const login = async (request) => {
@@ -91,6 +92,94 @@ const login = async (request) => {
     return { accessToken, currentUser };
 }
 
+const create = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    // console.log(refreshTkn);
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    // console.log(user);
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+
+    if (user.role === 'ADMIN') {
+        const createUser = validate(createAdminValidation, request.body);
+
+        const isUserExist = await prismaClient.user.count({
+            where: {
+                username: createUser.username
+            }
+        });
+
+        if (isUserExist === 1) {
+            throw new ResponseError(400, "Username is already Exist");
+        }
+
+        createUser.password = await bcrypt.hash(createUser.password, 10);
+
+        createUser.created_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+        createUser.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+
+        return prismaClient.user.create({
+            data: createUser,
+            select: {
+                id: true,
+                username: true,
+                name: true,
+                nickname: true,
+                email: true,
+                role: true,
+                phone: true,
+                created_at: true,
+                updated_at: true
+            }
+        })
+    } else if (user.role === 'SUPER') {
+        const createUser = validate(createSuperValidation, request.body);
+
+        const isUserExist = await prismaClient.user.count({
+            where: {
+                username: createUser.username
+            }
+        });
+
+        if (isUserExist === 1) {
+            throw new ResponseError(400, "Username is already Exist");
+        }
+
+        createUser.password = await bcrypt.hash(createUser.password, 10);
+
+        createUser.created_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+        createUser.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+
+        return prismaClient.user.create({
+            data: createUser,
+            select: {
+                id: true,
+                username: true,
+                name: true,
+                nickname: true,
+                email: true,
+                role: true,
+                phone: true,
+                created_at: true,
+                updated_at: true
+            }
+        })
+    } else if (user.role === 'USER') {
+        throw new ResponseError(403, "Forbidden!")
+    }
+
+
+}
+
 const get = async (request) => {
     const username = validate(getUserValidation, request.user);
 
@@ -118,10 +207,8 @@ const getAll = async () => {
     // username = validate(getUserValidation, username);
 
     const user = await prismaClient.user.findMany({
-        // where: {
-        //     username: username
-        // },
         select: {
+            id: true,
             username: true,
             name: true,
             nickname: true,
@@ -158,20 +245,80 @@ const update = async (request) => {
 
     updateUser.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    return prismaClient.user.update({
+    if (user.role === 'SUPER' || user.role === 'ADMIN' && request.params.id) {
+        return prismaClient.user.update({
+            where: {
+                id: parseInt(request.params.id)
+            },
+            data: updateUser,
+            select: {
+                username: true,
+                name: true,
+                nickname: true,
+                email: true,
+                phone: true,
+                updated_at: true
+            }
+        })
+    } else if (!request.params.id) {
+        return prismaClient.user.update({
+            where: {
+                username: user.username
+            },
+            data: updateUser,
+            select: {
+                username: true,
+                name: true,
+                nickname: true,
+                email: true,
+                phone: true,
+                updated_at: true
+            }
+        })
+    }
+}
+
+const remove = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    const user = await prismaClient.user.findFirst({
         where: {
-            username: user.username
+            token: refreshTkn,
         },
-        data: updateUser,
-        select: {
-            username: true,
-            name: true,
-            nickname: true,
-            email: true,
-            phone: true,
-            updated_at: true
-        }
+    });
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+
+    const deletedUser = await prismaClient.user.findUnique({
+        where: {
+            id: parseInt(request.params.id)
+        },
     })
+
+    // console.log(request.params.id);
+
+    if (user.role === 'SUPER') {
+        return prismaClient.user.delete({
+            where: {
+                id: parseInt(request.params.id),
+            }
+        })
+    } else if (user.role === 'ADMIN' && deletedUser.role !== 'SUPER') {
+        return prismaClient.user.delete({
+            where: {
+                id: parseInt(request.params.id),
+                // role: 'ADMIN' || 'USER'
+            }
+        })
+    } else if (user.role === "USER") {
+        throw new ResponseError(403, "Forbidden!")
+    } else {
+        throw new ResponseError(403, "Forbidden!")
+    }
 }
 
 const logout = async (request) => {
@@ -205,8 +352,10 @@ const logout = async (request) => {
 export default {
     register,
     login,
+    create,
     get,
     getAll,
+    remove,
     update,
     logout
 }

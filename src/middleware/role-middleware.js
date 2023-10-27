@@ -18,7 +18,7 @@ export const roleMiddleware = async (req, res, next) => {
         res.sendStatus(401);
     };
     // console.log(user);
-    if (user.role === 'ADMIN') {
+    if (user.role === 'ADMIN' || user.role === 'SUPER') {
         next();
     } else {
         res.sendStatus(403);

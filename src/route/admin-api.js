@@ -1,5 +1,4 @@
 import express from "express";
-import { refreshController } from "../controller/refresh-controller.js";
 import userController from "../controller/user-controller.js";
 import { roleMiddleware } from "../middleware/role-middleware.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
@@ -18,10 +17,13 @@ adminRouter.use(authMiddleware);
 adminRouter.use(roleMiddleware);
 
 //user api
+adminRouter.post('/api/admin/user', userController.create);
 adminRouter.get('/api/admin/current', userController.get);
-adminRouter.get('/api/users/all', userController.getAll);
-adminRouter.patch('/api/admin/update', userController.update);
+adminRouter.get('/api/admin/user/all', userController.getAll);
+adminRouter.patch('/api/admin/update/', userController.updateAdmin);
+adminRouter.patch('/api/admin/update/:id', userController.update);
 adminRouter.delete('/api/admin/logout', userController.logout);
+adminRouter.delete('/api/admin/remove/:id', userController.remove);
 
 //skill api
 adminRouter.get('/api/skill', skillController.get);
@@ -70,13 +72,13 @@ adminRouter.delete('/api/test/:id', testController.remove);
 //question api
 adminRouter.post('/api/question/:id', questionController.create);
 adminRouter.patch('/api/question/:id', questionController.updateQuestionOption);
-// adminRouter.patch('api/test/:id/question/:question', questionController.updateQuestionOption);
 adminRouter.delete('/api/question/:id/test/:test', questionController.remove);
 adminRouter.delete('/api/question/:id/option/:option', questionController.removeQuestionOption);
 
 //applicant api
 adminRouter.get('/api/applicant/:id', applicantController.get);
 adminRouter.get('/api/applicant', applicantController.getAll);
+adminRouter.patch('/api/applicant/:id', applicantController.update);
 
 export {
     adminRouter
