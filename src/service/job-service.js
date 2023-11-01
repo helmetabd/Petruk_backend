@@ -33,47 +33,6 @@ const create = async (request) => {
 
     // console.log(job);
 
-    // const template = await prismaClient.template.upsert({
-    //     create: {
-    //         name: job.template,
-    //         questionnaire: {
-    //             connectOrCreate: job.questionnaire.map((tag) => {
-    //                 return {
-    //                     where: {
-    //                         question: tag.question,
-    //                     },
-    //                     create: {
-    //                         question: tag.question,
-    //                     }
-    //                 }
-    //             })
-    //         }
-    //     },
-    //     update: {
-    //         name: job.template,
-    //         questionnaire: {
-    //             connectOrCreate: job.questionnaire.map((tag) => {
-    //                 return {
-    //                     where: {
-    //                         question: tag.question,
-    //                     },
-    //                     create: {
-    //                         question: tag.question,
-    //                     }
-    //                 }
-    //             })
-    //         }
-    //     },
-    //     where: {
-    //         name: job.template
-    //     },
-    //     include: {
-    //         questionnaire: true
-    //     }
-    // });
-
-    // console.log(template.questionnaire);
-
     return prismaClient.job.create({
         data: {
             author: {
@@ -263,13 +222,16 @@ const get = async (request) => {
     return job;
 }
 
-const getAll = async () => {
-    // username = validate(getUserValidation, username);
-
-    const job = await prismaClient.job.findMany({
-        // where: {
-        //     jobname: jobname
-        // },
+const getAll = async (request) => {
+    let { page = 1, limit = 10, search_query, direction = 'asc', orderFrom } = request.query //menghasilkan string
+    let skip = (page - 1) * limit
+    const countOptionts = {}
+    const options = {
+        take: parseInt(limit),
+        skip: skip,
+        orderBy: {
+            updated_at: 'desc'
+        },
         select: {
             id: true,
             position: {
@@ -298,8 +260,10 @@ const getAll = async () => {
             },
             template: {
                 select: {
+                    id: true,
                     questionnaire: {
                         select: {
+                            id: true,
                             question: true,
                             type: true
                         }
@@ -308,10 +272,13 @@ const getAll = async () => {
             },
             test: {
                 select: {
+                    id: true,
                     questionTest: {
                         select: {
+                            id: true,
                             question: true,
-                            type: true
+                            type: true,
+                            options: true
                         }
                     }
                 }
@@ -319,13 +286,63 @@ const getAll = async () => {
             created_at: true,
             updated_at: true
         }
-    });
+    }
+
+    if (search_query) {
+        options.where = {
+            OR: [
+                {
+                    position: {
+                        name: {
+                            contains: search_query
+                        }
+                    }
+                },
+                {
+                    division: {
+                        name: {
+                            contains: search_query
+                        }
+                    }
+                },
+                {
+                    skill: {
+                        some: {
+                            name: {
+                                contains: search_query
+                            }
+                        }
+                    }
+                },
+            ]
+        }
+        countOptionts.where = options.where
+    }
+    if (orderFrom) {
+        const order = orderFrom
+        options.orderBy = {
+            [order]: direction || 'asc'
+        }
+    }
+
+    const job = await prismaClient.job.findMany(options)
 
     if (!job) {
         throw new ResponseError(404, "jobs is not found");
     }
 
-    return job;
+    //informasi total data keseluruhan 
+    const resultCount = await prismaClient.job.count(countOptionts)//integer jumlah total data user
+
+    //generated total page
+    const totalPage = Math.ceil(resultCount / limit)
+
+    return {
+        job,
+        currentPage: page - 0,
+        totalPage,
+        resultCount
+    };
 }
 
 const update = async (request) => {

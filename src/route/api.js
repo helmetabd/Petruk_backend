@@ -10,6 +10,8 @@ import profileController from "../controller/profile-controller.js";
 import courseController from "../controller/course-controller.js";
 import jobController from "../controller/job-controller.js";
 import applicantController from "../controller/applicant-controller.js";
+import answerController from "../controller/answer-controller.js";
+import responseController from "../controller/response-controller.js";
 
 const userRouter = new express.Router();
 userRouter.use(authMiddleware);
@@ -67,6 +69,12 @@ userRouter.get('/api/job', jobController.getAll);
 userRouter.post('/api/job/:id', applicantController.create);
 userRouter.get('/api/applicant', applicantController.getAll);
 userRouter.get('/api/applicant/:id', applicantController.get);
+
+//answer api
+userRouter.post('/api/answer/:id', answerController.create);
+
+//response api
+userRouter.post('/api/response/:id', responseController.create);
 
 export {
     userRouter

@@ -13,7 +13,7 @@ const createQuestionsValidation = Joi.object({
                 is: 'Option',
                 then: Joi.required(),
                 otherwise: Joi.optional()
-            })
+            }).max(4)
         })
     ).has(Joi.object({
         question: Joi.string().max(255).required(),
@@ -26,7 +26,7 @@ const createQuestionsValidation = Joi.object({
             is: 'Option',
             then: Joi.required(),
             otherwise: Joi.optional()
-        })
+        }).max(4)
     })),
 });
 

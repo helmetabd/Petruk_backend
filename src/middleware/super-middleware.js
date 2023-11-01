@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 
-export const roleMiddleware = async (req, res, next) => {
+export const superMiddleware = async (req, res, next) => {
     const cookies = req.cookies;
     if (!cookies?.refreshToken) {
         res.sendStatus(401);
@@ -17,8 +17,8 @@ export const roleMiddleware = async (req, res, next) => {
     if (!user) {
         res.sendStatus(401);
     };
-    // console.log(user);
-    if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
+    console.log(user);
+    if (user.role.name === 'SUPER') {
         next();
     } else {
         res.sendStatus(403);

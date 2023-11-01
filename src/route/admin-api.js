@@ -11,6 +11,8 @@ import questionnaireController from "../controller/questionnaire-controller.js";
 import testController from "../controller/test-controller.js";
 import questionController from "../controller/question-controller.js";
 import applicantController from "../controller/applicant-controller.js";
+import roleController from "../controller/role-controller.js";
+import { superMiddleware } from "../middleware/super-middleware.js";
 
 const adminRouter = new express.Router();
 adminRouter.use(authMiddleware);
@@ -78,7 +80,14 @@ adminRouter.delete('/api/question/:id/option/:option', questionController.remove
 //applicant api
 adminRouter.get('/api/applicant/:id', applicantController.get);
 adminRouter.get('/api/applicant', applicantController.getAll);
+adminRouter.get('/api/applicant/job/:job', applicantController.getAll);
 adminRouter.patch('/api/applicant/:id', applicantController.update);
+
+//role api
+adminRouter.get('/api/role', roleController.get);
+adminRouter.post('/api/role', roleController.create, superMiddleware);
+adminRouter.patch('/api/role/:id', roleController.update, superMiddleware);
+adminRouter.delete('/api/role/:id', roleController.remove, superMiddleware);
 
 export {
     adminRouter

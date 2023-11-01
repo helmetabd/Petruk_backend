@@ -1,4 +1,3 @@
-import { request } from "express";
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { createApplicantValidation, getApplicantValidation, updateApplicantValidation } from "../validation/applicant-validation.js";
@@ -34,16 +33,6 @@ const create = async (request) => {
     if (!findEducation) {
         throw new ResponseError(204, "No content!");
     };
-
-    // try {
-    //     await prismaClient.profile.findUnique({
-    //         where: {
-    //             id: user.profile.id
-    //         }
-    //     })
-    // } catch (error) {
-    //     throw new ResponseError(204, "Please fill your profile first!")
-    // }
     const findProfile = await prismaClient.profile.findUnique({
         where: {
             id: user.profile.id
@@ -55,12 +44,38 @@ const create = async (request) => {
     };
 
     const userApplicant = validate(createApplicantValidation, request.body);
+    // const userApplicant = request.body;
+
+    // console.log(userApplicant)
 
     userApplicant.userId = user.id;
 
     // userApplicant.status = 'Submitted';
-
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+
+    let option = {
+        application_date: updated,
+        status: 'Submitted',
+        // description: userApplicant.description,
+        jobId: parseInt(request.params.id)
+    }
+
+    if (userApplicant.recomendation) {
+        option = {
+            ...option,
+            recomendations: {
+                create: userApplicant.recomendation.map((tag) => {
+                    return {
+                        name: tag.name,
+                        phone: tag.phone,
+                        job: tag.job,
+                        status: tag.status
+                    }
+                })
+            }
+        }
+    }
+
 
     // userApplicant.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
@@ -78,12 +93,7 @@ const create = async (request) => {
                             userId: userApplicant.userId
                         }
                     },
-                    create: {
-                        application_date: updated,
-                        status: 'Submitted',
-                        // description: userApplicant.description,
-                        jobId: parseInt(request.params.id)
-                    }
+                    create: option
                 }
             },
         },
@@ -106,6 +116,7 @@ const create = async (request) => {
                             }
                         }
                     },
+                    recomendations: true,
                     application_date: true,
                     status: true,
                 }
@@ -114,8 +125,135 @@ const create = async (request) => {
     });
 }
 
-const getAll = async (username) => {
-    const validateUser = validate(getApplicantValidation, username);
+// const getByJob = async (request) => {
+//     const validateUser = validate(getApplicantValidation, request.user);
+
+//     const user = await prismaClient.user.findFirst({
+//         where: {
+//             username: validateUser
+//         },
+//         select: {
+//             id: true,
+//             role: true
+//         }
+//     });
+
+//     if (!user) {
+//         throw new ResponseError(404, "user is not found");
+//     }
+
+//     let { page = 1, limit = 10, search_query, direction = 'asc', orderFrom } = request.query //menghasilkan string
+//     let skip = (page - 1) * limit
+//     const countOptionts = {}
+//     const options = {
+//         take: parseInt(limit),
+//         skip: skip,
+//         orderBy: {
+//             application_date: 'desc'
+//         },
+//         select: {
+//             id: true,
+//             job: {
+//                 select: {
+//                     id: true,
+//                     division: {
+//                         select: {
+//                             name: true
+//                         }
+//                     },
+//                     position: {
+//                         select: {
+//                             name: true
+//                         }
+//                     }
+//                 }
+//             },
+//             application_date: true,
+//             interview_date: true,
+//             placed_date: true,
+//             status: true,
+//             description: true,
+//             user: {
+//                 select: {
+//                     name: true,
+//                     nickname: true
+//                 }
+//             }
+//         }
+//     }
+
+//     if (search_query) {
+//         options.where = {
+//             OR: [
+//                 {
+//                     job: {
+//                         position: {
+//                             name: {
+//                                 contains: search_query
+//                             }
+//                         }
+//                     }
+//                 },
+//                 {
+//                     job: {
+//                         division: {
+//                             name: {
+//                                 contains: search_query
+//                             }
+//                         }
+//                     }
+//                 },
+//                 {
+//                     user: {
+//                         name: {
+//                             contains: search_query
+//                         }
+//                     }
+//                 },
+//             ]
+//         }
+//         countOptionts.where = options.where
+//     }
+//     if (orderFrom) {
+//         const order = orderFrom
+//         options.orderBy = {
+//             [order]: direction || 'asc'
+//         }
+//     }
+
+//     if (user.role.name === 'USER') {
+//         options.where = {
+//             ...options.where,
+//             userId: user.id
+//         }
+//         countOptionts.where = options.where
+//     }
+
+//     // else if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
+//     //     options.where = null
+//     // }
+//     const applicant = await prismaClient.applicant.findMany(options);
+
+//     //informasi total data keseluruhan 
+//     const resultCount = await prismaClient.applicant.count(countOptionts)//integer jumlah total data user
+
+//     //generated total page
+//     const totalPage = Math.ceil(resultCount / limit)
+
+//     if (!applicant) {
+//         throw new ResponseError(404, "applicant is not found");
+//     }
+
+//     return {
+//         applicant,
+//         currentPage: page - 0,
+//         totalPage,
+//         resultCount
+//     };
+// }
+
+const getAll = async (request) => {
+    const validateUser = validate(getApplicantValidation, request.user);
 
     const user = await prismaClient.user.findFirst({
         where: {
@@ -131,84 +269,121 @@ const getAll = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    if (user.role === 'USER') {
-        const applicant = await prismaClient.applicant.findMany({
-            where: {
-                userId: user.id
+    let { page = 1, limit = 10, search_query, direction = 'asc', orderFrom } = request.query //menghasilkan string
+    let skip = (page - 1) * limit
+    const countOptionts = {}
+    const options = {
+        take: parseInt(limit),
+        skip: skip,
+        orderBy: {
+            application_date: 'desc'
+        },
+        select: {
+            id: true,
+            job: {
+                select: {
+                    id: true,
+                    division: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    position: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
             },
-            select: {
-                id: true,
-                job: {
-                    select: {
-                        division: {
-                            select: {
-                                name: true
-                            }
-                        },
-                        position: {
-                            select: {
-                                name: true
-                            }
-                        }
-                    }
-                },
-                application_date: true,
-                interview_date: true,
-                placed_date: true,
-                status: true,
-                description: true,
-                user: {
-                    select: {
-                        name: true,
-                        nickname: true
-                    }
+            application_date: true,
+            interview_date: true,
+            placed_date: true,
+            status: true,
+            description: true,
+            user: {
+                select: {
+                    name: true,
+                    nickname: true
                 }
             }
-        });
-
-        if (!applicant) {
-            throw new ResponseError(404, "applicant is not found");
         }
-
-        return applicant;
-    } else if (user.role === 'ADMIN') {
-        const applicant = await prismaClient.applicant.findMany({
-            select: {
-                id: true,
-                job: {
-                    select: {
-                        division: {
-                            select: {
-                                name: true
-                            }
-                        },
-                        position: {
-                            select: {
-                                name: true
-                            }
-                        }
-                    }
-                },
-                application_date: true,
-                interview_date: true,
-                placed_date: true,
-                status: true,
-                description: true,
-                user: {
-                    select: {
-                        name: true,
-                        nickname: true
-                    }
-                }
-            }
-        });
-
-        if (!applicant) {
-            throw new ResponseError(404, "applicant is not found");
-        }
-
-        return applicant;
     }
+
+    if (search_query) {
+        options.where = {
+            OR: [
+                {
+                    job: {
+                        position: {
+                            name: {
+                                contains: search_query
+                            }
+                        }
+                    }
+                },
+                {
+                    job: {
+                        division: {
+                            name: {
+                                contains: search_query
+                            }
+                        }
+                    }
+                },
+                {
+                    user: {
+                        name: {
+                            contains: search_query
+                        }
+                    }
+                },
+            ]
+        }
+        countOptionts.where = options.where
+    }
+    if (orderFrom) {
+        const order = orderFrom
+        options.orderBy = {
+            [order]: direction || 'asc'
+        }
+    }
+
+    if (user.role.name === 'USER') {
+        options.where = {
+            ...options.where,
+            userId: user.id
+        }
+        countOptionts.where = options.where
+    }
+
+    if (request.params.job && user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
+        options.where = {
+            ...options.where,
+            jobId: parseInt(request.params.job)
+        }
+        countOptionts.where = options.where
+    }
+    // else if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
+    //     options.where = null
+    // }
+    const applicant = await prismaClient.applicant.findMany(options);
+
+    //informasi total data keseluruhan 
+    const resultCount = await prismaClient.applicant.count(countOptionts)//integer jumlah total data user
+
+    //generated total page
+    const totalPage = Math.ceil(resultCount / limit)
+
+    if (!applicant) {
+        throw new ResponseError(404, "applicant is not found");
+    }
+
+    return {
+        applicant,
+        currentPage: page - 0,
+        totalPage,
+        resultCount
+    };
 }
 
 const get = async (request) => {
@@ -228,7 +403,7 @@ const get = async (request) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    if (user.role === 'USER') {
+    if (user.role.name === 'USER') {
         const applicant = await prismaClient.applicant.findUnique({
             where: {
                 id: parseInt(request.params.id),
@@ -238,6 +413,7 @@ const get = async (request) => {
                 id: true,
                 job: {
                     select: {
+                        id: true,
                         division: {
                             select: {
                                 name: true
@@ -250,6 +426,9 @@ const get = async (request) => {
                         }
                     }
                 },
+                recomendations: true,
+                response: true,
+                answer: true,
                 application_date: true,
                 interview_date: true,
                 placed_date: true,
@@ -269,7 +448,7 @@ const get = async (request) => {
         }
 
         return applicant;
-    } else if (user.role === 'ADMIN') {
+    } else if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
         const applicant = await prismaClient.applicant.findUnique({
             where: {
                 id: parseInt(request.params.id)
@@ -323,6 +502,9 @@ const update = async (request) => {
         where: {
             token: refreshTkn,
         },
+        include: {
+            role: true
+        }
     });
     // console.log(user);
     if (!user) {
@@ -352,7 +534,7 @@ const update = async (request) => {
     //     }
     // })
 
-    if (user.role === 'ADMIN') {
+    if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
         return prismaClient.applicant.update({
             where: {
                 id: parseInt(request.params.id),

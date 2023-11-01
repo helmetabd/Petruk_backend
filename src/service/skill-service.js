@@ -31,7 +31,7 @@ const create = async (request) => {
     // userSkill.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
     // console.log(userSkill);
-    if (user.role === "ADMIN") {
+    if (user.role === "ADMIN" || user.role === 'SUPER') {
         return prismaClient.skill.createMany({
             data: userSkill.skill,
         })
@@ -99,7 +99,7 @@ const get = async (username) => {
 
         return skill;
 
-    } else if (user.role === "ADMIN") {
+    } else if (user.role === "ADMIN" || user.role === 'SUPER') {
         const skill = await prismaClient.skill.findMany({
             select: {
                 id: true,
@@ -176,7 +176,7 @@ const remove = async (request) => {
 
     // console.log(request.params.id);
 
-    if (user.role === "ADMIN") {
+    if (user.role === "ADMIN" || user.role === 'SUPER') {
         return prismaClient.skill.delete({
             where: {
                 id: parseInt(request.params.id)

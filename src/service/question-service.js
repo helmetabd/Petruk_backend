@@ -21,7 +21,7 @@ const create = async (request) => {
     };
     const testQuestions = validate(createQuestionsValidation, request.body);
 
-    // tempplateQuestionnaire.userId = user.id;]
+    // tempplateQuestionnaire.userId = user.id;
     // console.log(testQuestions)
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();

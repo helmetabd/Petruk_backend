@@ -268,35 +268,6 @@ const remove = async (request) => {
     }
 }
 
-// const templateQuestionRemove = async (request) => {
-//     const cookies = request.cookies;
-//     if (!cookies?.refreshToken) {
-//         throw new ResponseError(204, "No content!");
-//     };
-//     const refreshTkn = cookies.refreshToken;
-//     const user = await prismaClient.user.findFirst({
-//         where: {
-//             token: refreshTkn,
-//         },
-//     });
-//     if (!user) {
-//         throw new ResponseError(204, "No content!");
-//     };
-
-//     return prismaClient.template.update({
-//         where: {
-//             id: parseInt(request.params.id),
-//         },
-//         data: {
-//             questionnaire: {
-//                 disconnect: {
-//                     id: parseInt(request.params.questionnaire)
-//                 },
-//             }
-//         }
-//     });
-// }
-
 export default {
     create,
     get,

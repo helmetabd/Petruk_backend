@@ -1,8 +1,8 @@
-import jobService from "../service/job-service.js";
+import roleService from "../service/role-service.js";
 
 const create = async (req, res, next) => {
     try {
-        const result = await jobService.create(req);
+        const result = await roleService.create(req);
         res.status(200).json({
             data: result
         });
@@ -12,23 +12,10 @@ const create = async (req, res, next) => {
 }
 
 const get = async (req, res, next) => {
-    // console.log("zzzz")
     // console.log(req.user);
     try {
-        // const username = req.user;
-        const result = await jobService.get(req);
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-}
-
-const getAll = async (req, res, next) => {
-    try {
-        // const username = req.user;
-        const result = await jobService.getAll(req);
+        const username = req.user;
+        const result = await roleService.get(username);
         res.status(200).json({
             data: result
         });
@@ -39,10 +26,7 @@ const getAll = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        // const username = req.user.username;
-        // const request = req.body;
-        // request.username = username;
-        const result = await jobService.update(req);
+        const result = await roleService.update(req);
         res.status(200).json({
             data: result
         });
@@ -54,7 +38,7 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
     try {
         // const skillId = req.params.id;
-        await jobService.remove(req);
+        await roleService.remove(req);
         res.status(200).json({
             data: "OK"
         });
@@ -66,7 +50,6 @@ const remove = async (req, res, next) => {
 export default {
     create,
     get,
-    getAll,
     update,
-    remove
+    remove,
 }

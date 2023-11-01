@@ -17,7 +17,8 @@ model User {
   token      String?      @db.VarChar(255)
   email      String       @db.VarChar(200)
   phone      String       @db.VarChar(100)
-  role       Role         @default(USER)
+  roleId     Int          @unique
+  role       Role         @relation(fields: [roleId], references: [id])
   created_at DateTime     @default(now())
   updated_at DateTime     @default(now()) @updatedAt
   education  Education[]
@@ -30,7 +31,18 @@ model User {
   skills     Skill[]
   applicant  Applicant[]
 
+  @@index([roleId])
   @@map("users")
+}
+
+model Role {
+  id           Int    @id @default(autoincrement())
+  name         String @db.VarChar(20)
+  display_name String @db.VarChar(20)
+  user         User[]
+
+  @@unique([name])
+  @@map("roles")
 }
 
 model Profile {
@@ -142,19 +154,19 @@ model Job {
   divisionId Int
   position   Position    @relation(fields: [positionId], references: [id])
   positionId Int
-  // questionnaire Questionnaire[]
   template   Template    @relation(fields: [templateId], references: [id])
-  templateId Int         @unique
+  templateId Int
   test       Test        @relation(fields: [testId], references: [id])
-  testId     Int         @unique
+  testId     Int
   applicants Applicant[]
-  // template   Template?
   created_at DateTime    @default(now())
   updated_at DateTime    @default(now()) @updatedAt
 
   @@index([authorId])
   @@index([divisionId])
   @@index([positionId])
+  @@index([templateId])
+  @@index([testId])
   @@map("jobs")
 }
 
@@ -179,6 +191,7 @@ model Questionnaire {
   question String     @unique @db.VarChar(255)
   type     Type       @default(Text)
   template Template[]
+  Response Response[]
 
   @@map("questionnaires")
 }
@@ -187,7 +200,7 @@ model Template {
   id            Int             @id @default(autoincrement())
   name          String          @unique @db.VarChar(150)
   questionnaire Questionnaire[]
-  job           Job?
+  job           Job[]
 
   @@map("templates")
 }
@@ -198,6 +211,7 @@ model Test_Question {
   type     Type      @default(Option)
   options  Options[]
   test     Test[]
+  Answer   Answer[]
 
   @@map("questions")
 }
@@ -206,7 +220,7 @@ model Test {
   id           Int             @id @default(autoincrement())
   name         String          @unique @db.VarChar(150)
   questionTest Test_Question[]
-  job          Job?
+  job          Job[]
 
   @@map("tests")
 }
@@ -220,16 +234,19 @@ model Options {
 }
 
 model Applicant {
-  id               Int       @id @default(autoincrement())
-  application_date DateTime  @default(now())
+  id               Int             @id @default(autoincrement())
+  application_date DateTime        @default(now())
   interview_date   DateTime?
   placed_date      DateTime?
   status           Status
-  description      String?   @db.VarChar(255)
-  job              Job       @relation(fields: [jobId], references: [id])
+  description      String?         @db.VarChar(255)
+  job              Job             @relation(fields: [jobId], references: [id])
   jobId            Int
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
+  answer           Answer[]
+  response         Response[]
+  recomendations   Recomendation[]
 
   @@unique([jobId, userId])
   @@index([jobId])
@@ -237,11 +254,53 @@ model Applicant {
   @@map("applicants")
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPER
+model Answer {
+  id          Int           @id @default(autoincrement())
+  value       String        @db.VarChar(255)
+  applicant   Applicant     @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicantId Int
+  question    Test_Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId  Int
+
+  @@unique([applicantId, questionId])
+  @@index([applicantId])
+  @@index([questionId])
+  @@map("answers")
 }
+
+model Response {
+  id              Int           @id @default(autoincrement())
+  value           String        @db.VarChar(255)
+  applicant       Applicant     @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicantId     Int
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  questionnaireId Int
+
+  @@unique([applicantId, questionnaireId])
+  @@index([applicantId])
+  @@index([questionnaireId])
+  @@map("responses")
+}
+
+model Recomendation {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  phone       String    @db.VarChar(100)
+  job         String    @db.VarChar(150)
+  status      String    @db.VarChar(30)
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId Int
+
+  @@unique([name])
+  @@index([applicantId])
+  @@map("recomendations")
+}
+
+// enum Role {
+//   USER
+//   ADMIN
+//   SUPER
+// }
 
 enum Gender {
   Male

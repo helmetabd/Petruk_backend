@@ -14,8 +14,18 @@ const create = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
     try {
-        const username = req.user;
-        const result = await applicantService.getAll(username);
+        const result = await applicantService.getAll(req);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const getByJob = async (req, res, next) => {
+    try {
+        const result = await applicantService.getAll(req);
         res.status(200).json({
             data: result
         });
@@ -61,6 +71,7 @@ export default {
     create,
     get,
     getAll,
+    getByJob,
     update,
     remove
 }

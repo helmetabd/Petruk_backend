@@ -6,7 +6,6 @@ const registerUserValidation = Joi.object({
     name: Joi.string().max(100).required(),
     nickname: Joi.string().max(100).required(),
     email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).max(200).required(),
-    role: Joi.string().valid('USER').default('USER'),
     phone: Joi.string().regex(/^([0-9]){8,12}[0-9]$/).messages({ 'string.pattern.base': `Phone number must have 9 digits and maximum 13 digits` }).required(),
     created_at: Joi.date(),
     updated_at: Joi.date()
@@ -42,8 +41,6 @@ const loginUserValidation = Joi.object({
 const getUserValidation = Joi.string().max(100).required();
 
 const updateUserValidation = Joi.object({
-    // username: Joi.string().max(100).required(),
-    // password: Joi.string().max(100).optional(),
     name: Joi.string().max(100).required(),
     nickname: Joi.string().max(100).required(),
     email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).max(200).required(),

@@ -16,7 +16,8 @@ const login = async (req, res, next) => {
         const result = await userService.login(req.body);
         res.cookie('refreshToken', result.currentUser.token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 })
         res.status(200).json({
-            accessToken: result.accessToken
+            accessToken: result.accessToken,
+            data: result.currentUser
         });
     } catch (e) {
         next(e);
@@ -49,9 +50,9 @@ const get = async (req, res, next) => {
 const getAll = async (req, res, next) => {
     try {
         // const username = req.user;
-        const result = await userService.getAll();
+        const result = await userService.getAll(req);
         res.status(200).json({
-            data: result
+            data: result,
         });
     } catch (e) {
         next(e);
