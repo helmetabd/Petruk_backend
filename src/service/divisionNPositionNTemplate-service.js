@@ -78,6 +78,9 @@ const get = async (username, divpos) => {
             select: {
                 id: true,
                 name: true,
+            },
+            orderBy: {
+                id: "desc"
             }
         });
 
@@ -91,6 +94,9 @@ const get = async (username, divpos) => {
             select: {
                 id: true,
                 name: true,
+            },
+            orderBy: {
+                id: "desc"
             }
         });
 
@@ -104,7 +110,14 @@ const get = async (username, divpos) => {
             select: {
                 id: true,
                 name: true,
-                questionnaire: true
+                questionnaire: {
+                    include: {
+                        options: true
+                    }
+                }
+            },
+            orderBy: {
+                id: "desc"
             }
         });
 
@@ -123,6 +136,9 @@ const get = async (username, divpos) => {
                         options: true
                     }
                 }
+            },
+            orderBy: {
+                id: "desc"
             }
         });
 

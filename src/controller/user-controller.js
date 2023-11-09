@@ -104,6 +104,39 @@ const logout = async (req, res, next) => {
     }
 }
 
+const requestResetPassword = async (req, res, next) => {
+    try {
+        const result = await userService.requestPasswordReset(req);
+        res.status(200).json({
+            data: result
+        })
+    } catch (e) {
+        next(e);
+    }
+}
+
+const resetPassword = async (req, res, next) => {
+    try {
+        const result = await userService.resetPassword(req);
+        res.status(200).json({
+            data: result
+        })
+    } catch (e) {
+        next(e);
+    }
+}
+
+const verifyEmail = async (req, res, next) => {
+    try {
+        const result = await userService.verifyAccount(req);
+        res.status(200).json({
+            data: result
+        })
+    } catch (e) {
+        next(e);
+    }
+}
+
 export default {
     register,
     login,
@@ -113,5 +146,8 @@ export default {
     update,
     updateAdmin,
     remove,
-    logout
+    logout,
+    requestResetPassword,
+    resetPassword,
+    verifyEmail
 }

@@ -35,8 +35,10 @@ adminRouter.delete('/api/skill/:id', skillController.remove);
 //job api
 adminRouter.get('/api/job/:id', jobController.get);
 adminRouter.get('/api/job', jobController.getAll);
+adminRouter.get('/api/job-archived', jobController.getAll);
 adminRouter.post('/api/job', jobController.create);
 adminRouter.patch('/api/job/:id', jobController.update);
+adminRouter.patch('/api/job/completed/:id', jobController.completed);
 adminRouter.delete('/api/job/:id', jobController.remove);
 adminRouter.delete('/api/job/:id/skill/:skill', skillController.removeJobSkill);
 // adminRouter.delete('/api/job/:id', jobController.remove);
@@ -62,7 +64,9 @@ adminRouter.delete('/api/template/:id', templateController.remove);
 
 //questionnaire api
 adminRouter.post('/api/questionnaire/:id', questionnaireController.create);
+adminRouter.patch('/api/questionnaire/:template', questionnaireController.updateQuestionnaireOption);
 adminRouter.delete('/api/questionnaire/:id/template/:template', questionnaireController.remove);
+adminRouter.delete('/api/questionnaire/:id/option/:option', questionnaireController.removeQuestionnaireOption);
 
 //test api
 adminRouter.get('/api/test', testController.get);
@@ -79,6 +83,7 @@ adminRouter.delete('/api/question/:id/option/:option', questionController.remove
 
 //applicant api
 adminRouter.get('/api/applicant/:id', applicantController.get);
+adminRouter.get('/api/applicant-archived', applicantController.getAll);
 adminRouter.get('/api/applicant', applicantController.getAll);
 adminRouter.get('/api/applicant/job/:job', applicantController.getAll);
 adminRouter.patch('/api/applicant/:id', applicantController.update);

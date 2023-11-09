@@ -7,6 +7,9 @@ publicRouter.post('/api/users', userController.register);
 publicRouter.post('/api/users/login', userController.login);
 publicRouter.get('/api/job/:id', jobController.get);
 publicRouter.get('/api/job', jobController.getAll);
+publicRouter.post('/api/request', userController.requestResetPassword);
+publicRouter.post('/api/reset-password', userController.resetPassword);
+publicRouter.post('/api/verify', userController.verifyEmail);
 
 export {
     publicRouter

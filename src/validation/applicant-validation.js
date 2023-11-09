@@ -21,9 +21,9 @@ const createApplicantValidation = Joi.object({
 const getApplicantValidation = Joi.string().max(100).required();
 
 const updateApplicantValidation = Joi.object({
-    status: Joi.valid('Hold', 'Placed', 'Interview').required(),
+    status: Joi.valid('Hold', 'Placed', 'Interview', 'Rejected').required(),
     description: Joi.when('status', {
-        not: 'Placed',
+        not: ['Placed', 'Rejected'],
         then: Joi.string().max(255).required(),
         otherwise: Joi.string().max(255).optional()
     }),

@@ -1,9 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { validate } from "../validation/validation.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { getSkillValidation, skillValidation } from "../validation/skill-validation.js";
 
 const create = async (request) => {
@@ -17,6 +14,9 @@ const create = async (request) => {
         where: {
             token: refreshTkn,
         },
+        include: {
+            role: true
+        }
     });
     // console.log(user);
     if (!user) {
@@ -31,11 +31,11 @@ const create = async (request) => {
     // userSkill.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
     // console.log(userSkill);
-    if (user.role === "ADMIN" || user.role === 'SUPER') {
+    if (user.role.name === "ADMIN" || user.role.name === 'SUPER') {
         return prismaClient.skill.createMany({
             data: userSkill.skill,
         })
-    } else if (user.role === "USER") {
+    } else if (user.role.name === "USER") {
         return prismaClient.user.update({
             where: {
                 username: user.username
@@ -78,7 +78,7 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    if (user.role === "USER") {
+    if (user.role.name === "USER") {
         const skill = await prismaClient.skill.findMany({
             where: {
                 users: {
@@ -86,6 +86,9 @@ const get = async (username) => {
                         id: user.id
                     }
                 }
+            },
+            orderBy: {
+                id: 'desc'
             },
             select: {
                 id: true,
@@ -99,11 +102,14 @@ const get = async (username) => {
 
         return skill;
 
-    } else if (user.role === "ADMIN" || user.role === 'SUPER') {
+    } else if (user.role.name === "ADMIN" || user.role.name === 'SUPER') {
         const skill = await prismaClient.skill.findMany({
             select: {
                 id: true,
                 name: true,
+            },
+            orderBy: {
+                id: "desc"
             }
         });
 
@@ -169,6 +175,9 @@ const remove = async (request) => {
         where: {
             token: refreshTkn,
         },
+        include: {
+            role: true
+        }
     });
     if (!user) {
         throw new ResponseError(204, "No content!");
@@ -176,13 +185,13 @@ const remove = async (request) => {
 
     // console.log(request.params.id);
 
-    if (user.role === "ADMIN" || user.role === 'SUPER') {
+    if (user.role.name === "ADMIN" || user.role.name === 'SUPER') {
         return prismaClient.skill.delete({
             where: {
                 id: parseInt(request.params.id)
             }
         })
-    } else if (user.role === "USER") {
+    } else if (user.role.name === "USER") {
         return prismaClient.user.update({
             where: {
                 username: user.username
@@ -215,30 +224,41 @@ const jobSkillRemove = async (request) => {
         where: {
             token: refreshTkn,
         },
+        include: {
+            role: true
+        }
     });
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
 
-    // console.log(request.params.id);
-
-    return prismaClient.job.update({
+    const job = await prismaClient.job.findUnique({
         where: {
-            id: parseInt(request.params.id),
-            authorId: user.id
-        },
-        data: {
-            skill: {
-                // set
-                disconnect: {
-                    id: parseInt(request.params.skill)
-                },
-                // delete: {
-                //     id: parseInt(request.params.id)
-                // }
-            }
+            id: parseInt(request.params.id)
         }
-    });
+    })
+
+    if (job.authorId === user.id || user.role.name === 'SUPER') {
+        return prismaClient.job.update({
+            where: {
+                id: parseInt(request.params.id),
+                authorId: user.id
+            },
+            data: {
+                skill: {
+                    // set
+                    disconnect: {
+                        id: parseInt(request.params.skill)
+                    },
+                    // delete: {
+                    //     id: parseInt(request.params.id)
+                    // }
+                }
+            }
+        });
+    } else {
+        throw new ResponseError(403, "You dont have access to update this job!");
+    }
 }
 
 export default {

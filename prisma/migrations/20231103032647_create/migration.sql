@@ -8,11 +8,25 @@ CREATE TABLE `users` (
     `token` VARCHAR(255) NULL,
     `email` VARCHAR(200) NOT NULL,
     `phone` VARCHAR(100) NOT NULL,
-    `role` ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER',
+    `roleId` INTEGER NOT NULL,
+    `reset_token` VARCHAR(255) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `email_verified_at` DATETIME(3) NULL,
 
     UNIQUE INDEX `users_username_key`(`username`),
+    UNIQUE INDEX `users_email_key`(`email`),
+    INDEX `users_roleId_idx`(`roleId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `roles` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(20) NOT NULL,
+    `display_name` VARCHAR(20) NOT NULL,
+
+    UNIQUE INDEX `roles_name_key`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -45,32 +59,30 @@ CREATE TABLE `educations` (
     `enrollment_year` DATE NOT NULL,
     `graduation_year` DATE NOT NULL,
 
-    UNIQUE INDEX `educations_instance_name_key`(`instance_name`),
-    UNIQUE INDEX `educations_education_level_key`(`education_level`),
     INDEX `educations_userId_idx`(`userId`),
+    UNIQUE INDEX `educations_instance_name_userId_education_level_key`(`instance_name`, `userId`, `education_level`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `courses` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NOT NULL,
+    `userId` INTEGER NULL,
     `instance_name` VARCHAR(255) NOT NULL,
     `type` VARCHAR(255) NOT NULL,
     `qualification` VARCHAR(10) NOT NULL,
     `start_course` DATE NOT NULL,
     `end_course` DATE NOT NULL,
 
-    UNIQUE INDEX `courses_userId_key`(`userId`),
-    UNIQUE INDEX `courses_instance_name_key`(`instance_name`),
-    UNIQUE INDEX `courses_type_key`(`type`),
+    INDEX `courses_userId_idx`(`userId`),
+    UNIQUE INDEX `courses_userId_instance_name_type_key`(`userId`, `instance_name`, `type`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `experiences` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NOT NULL,
+    `userId` INTEGER NULL,
     `instance_name` VARCHAR(255) NOT NULL,
     `position` VARCHAR(100) NOT NULL,
     `salary` INTEGER NOT NULL,
@@ -78,24 +90,23 @@ CREATE TABLE `experiences` (
     `start_work` DATE NOT NULL,
     `end_work` DATE NOT NULL,
 
-    UNIQUE INDEX `experiences_userId_key`(`userId`),
-    UNIQUE INDEX `experiences_instance_name_key`(`instance_name`),
-    UNIQUE INDEX `experiences_position_key`(`position`),
+    INDEX `experiences_userId_idx`(`userId`),
+    UNIQUE INDEX `experiences_userId_instance_name_position_key`(`userId`, `instance_name`, `position`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `family` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NOT NULL,
+    `userId` INTEGER NULL,
     `name` VARCHAR(100) NOT NULL,
     `status` VARCHAR(30) NOT NULL,
     `address` VARCHAR(255) NOT NULL,
     `phone` VARCHAR(100) NOT NULL,
     `work` VARCHAR(100) NOT NULL,
 
-    UNIQUE INDEX `family_userId_key`(`userId`),
-    UNIQUE INDEX `family_name_key`(`name`),
+    INDEX `family_userId_idx`(`userId`),
+    UNIQUE INDEX `family_userId_name_status_key`(`userId`, `name`, `status`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -130,8 +141,11 @@ CREATE TABLE `jobs` (
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `jobs_templateId_key`(`templateId`),
-    UNIQUE INDEX `jobs_testId_key`(`testId`),
+    INDEX `jobs_authorId_idx`(`authorId`),
+    INDEX `jobs_divisionId_idx`(`divisionId`),
+    INDEX `jobs_positionId_idx`(`positionId`),
+    INDEX `jobs_templateId_idx`(`templateId`),
+    INDEX `jobs_testId_idx`(`testId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -204,13 +218,56 @@ CREATE TABLE `options` (
 CREATE TABLE `applicants` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `application_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `interview_date` DATETIME(3) NULL,
+    `placed_date` DATETIME(3) NULL,
     `status` ENUM('Submitted', 'Interview', 'Hold', 'Placed') NOT NULL,
-    `description` VARCHAR(255) NOT NULL,
+    `description` VARCHAR(255) NULL,
     `jobId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `applicants_jobId_key`(`jobId`),
-    UNIQUE INDEX `applicants_userId_key`(`userId`),
+    INDEX `applicants_jobId_idx`(`jobId`),
+    INDEX `applicants_userId_idx`(`userId`),
+    UNIQUE INDEX `applicants_jobId_userId_key`(`jobId`, `userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `answers` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `value` VARCHAR(255) NOT NULL,
+    `applicantId` INTEGER NOT NULL,
+    `questionId` INTEGER NOT NULL,
+
+    INDEX `answers_applicantId_idx`(`applicantId`),
+    INDEX `answers_questionId_idx`(`questionId`),
+    UNIQUE INDEX `answers_applicantId_questionId_key`(`applicantId`, `questionId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `responses` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `value` VARCHAR(255) NOT NULL,
+    `applicantId` INTEGER NOT NULL,
+    `questionnaireId` INTEGER NOT NULL,
+
+    INDEX `responses_applicantId_idx`(`applicantId`),
+    INDEX `responses_questionnaireId_idx`(`questionnaireId`),
+    UNIQUE INDEX `responses_applicantId_questionnaireId_key`(`applicantId`, `questionnaireId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `recomendations` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL,
+    `phone` VARCHAR(100) NOT NULL,
+    `job` VARCHAR(150) NOT NULL,
+    `status` VARCHAR(30) NOT NULL,
+    `applicantId` INTEGER NOT NULL,
+
+    INDEX `recomendations_applicantId_idx`(`applicantId`),
+    UNIQUE INDEX `recomendations_name_key`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -260,19 +317,22 @@ CREATE TABLE `_OptionsToTest_Question` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `profile` ADD CONSTRAINT `profile_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `users` ADD CONSTRAINT `users_roleId_fkey` FOREIGN KEY (`roleId`) REFERENCES `roles`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `profile` ADD CONSTRAINT `profile_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `educations` ADD CONSTRAINT `educations_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `courses` ADD CONSTRAINT `courses_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `courses` ADD CONSTRAINT `courses_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `experiences` ADD CONSTRAINT `experiences_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `experiences` ADD CONSTRAINT `experiences_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `family` ADD CONSTRAINT `family_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `family` ADD CONSTRAINT `family_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `jobs` ADD CONSTRAINT `jobs_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -293,7 +353,22 @@ ALTER TABLE `jobs` ADD CONSTRAINT `jobs_testId_fkey` FOREIGN KEY (`testId`) REFE
 ALTER TABLE `applicants` ADD CONSTRAINT `applicants_jobId_fkey` FOREIGN KEY (`jobId`) REFERENCES `jobs`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `applicants` ADD CONSTRAINT `applicants_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `applicants` ADD CONSTRAINT `applicants_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `answers` ADD CONSTRAINT `answers_applicantId_fkey` FOREIGN KEY (`applicantId`) REFERENCES `applicants`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `answers` ADD CONSTRAINT `answers_questionId_fkey` FOREIGN KEY (`questionId`) REFERENCES `questions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `responses` ADD CONSTRAINT `responses_applicantId_fkey` FOREIGN KEY (`applicantId`) REFERENCES `applicants`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `responses` ADD CONSTRAINT `responses_questionnaireId_fkey` FOREIGN KEY (`questionnaireId`) REFERENCES `questionnaires`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `recomendations` ADD CONSTRAINT `recomendations_applicantId_fkey` FOREIGN KEY (`applicantId`) REFERENCES `applicants`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_SkillToUser` ADD CONSTRAINT `_SkillToUser_A_fkey` FOREIGN KEY (`A`) REFERENCES `skills`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

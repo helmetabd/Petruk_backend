@@ -82,7 +82,7 @@ const get = async (username) => {
         throw new ResponseError(404, "user is not found");
     }
 
-    if (user.role === "USER") {
+    if (user.role.name === "USER") {
         const course = await prismaClient.course.findMany({
             where: {
                 users: {
@@ -105,7 +105,7 @@ const get = async (username) => {
 
         return course;
 
-    } else if (user.role === "ADMIN") {
+    } else if (user.role.name === "ADMIN") {
         const course = await prismaClient.course.findMany({
             select: {
                 id: true,
@@ -180,6 +180,9 @@ const remove = async (request) => {
         where: {
             token: refreshTkn,
         },
+        include: {
+            role: true
+        }
     });
     if (!user) {
         throw new ResponseError(204, "No content!");
@@ -187,13 +190,13 @@ const remove = async (request) => {
 
     // console.log(request.params.id);
 
-    if (user.role === "ADMIN") {
+    if (user.role.name === "ADMIN") {
         return prismaClient.course.delete({
             where: {
                 id: parseInt(request.params.id)
             }
         })
-    } else if (user.role === "USER") {
+    } else if (user.role.name === "USER") {
         return prismaClient.user.update({
             where: {
                 username: user.username

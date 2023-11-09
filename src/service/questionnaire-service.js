@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { createQuestionnaireValidation, getQuestionnaireValidation, updateQuestionnaireValidation } from "../validation/questionnaire-validation.js";
+import { createQuestionnaireValidation, getQuestionnaireValidation, updateOptionValidation, updateQuestionnaireValidation } from "../validation/questionnaire-validation.js";
 import { validate } from "../validation/validation.js"
 
 const create = async (request) => {
@@ -36,7 +36,15 @@ const create = async (request) => {
                         where: { question: tag.question },
                         create: {
                             question: tag.question,
-                            type: tag.type
+                            type: tag.type,
+                            options: {
+                                connectOrCreate: tag.options?.map((tags) => {
+                                    return {
+                                        where: { option: tags.option },
+                                        create: { option: tags.option }
+                                    }
+                                })
+                            }
                         }
                     };
                 })
@@ -47,7 +55,8 @@ const create = async (request) => {
             questionnaire: {
                 select: {
                     question: true,
-                    type: true
+                    type: true,
+                    options: true
                 }
             },
             job: {
@@ -129,8 +138,10 @@ const get = async (request) => {
             name: true,
             questionnaire: {
                 select: {
+                    id: true,
                     question: true,
-                    type: true
+                    type: true,
+                    options: true
                 }
             },
             job: {
@@ -189,7 +200,15 @@ const update = async (request) => {
                         where: { question: tag.question },
                         create: {
                             question: tag.question,
-                            type: tag.type
+                            type: tag.type,
+                            options: {
+                                connectOrCreate: tag.options?.map((tags) => {
+                                    return {
+                                        where: { option: tags.option },
+                                        create: { option: tags.option }
+                                    }
+                                })
+                            }
                         }
                     };
                 })
@@ -200,7 +219,8 @@ const update = async (request) => {
             questionnaire: {
                 select: {
                     question: true,
-                    type: true
+                    type: true,
+                    options: true
                 }
             },
             job: {
@@ -268,10 +288,133 @@ const remove = async (request) => {
     }
 }
 
+const questionnaireOptionsUpdate = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    // console.log(refreshTkn);
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    // console.log(user);
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+    const updatedQuestion = validate(updateOptionValidation, request.body);
+
+    const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
+
+    // console.log(request.params)
+    return prismaClient.questionnaire.upsert({
+        where: {
+            template: {
+                some: {
+                    id: parseInt(request.params.template)
+                }
+            },
+            question: updatedQuestion.question
+        },
+        create: {
+            template: {
+                connect: {
+                    id: parseInt(request.params.template)
+                }
+            },
+            question: updatedQuestion.question,
+            type: updatedQuestion.type,
+            options: {
+                connectOrCreate: updatedQuestion.options.map((tag) => {
+                    return {
+                        where: { option: tag.option },
+                        create: { option: tag.option }
+                    }
+                }),
+            }
+        },
+        update: {
+            question: updatedQuestion.question,
+            type: updatedQuestion.type,
+            options: {
+                connectOrCreate: updatedQuestion.options.map((tag) => {
+                    return {
+                        where: { option: tag.option },
+                        create: { option: tag.option }
+                    }
+                }),
+            }
+        },
+        // include: {
+        //     test: true
+        // },
+        select: {
+            template: {
+                select: {
+                    name: true,
+                    questionnaire: {
+                        select: {
+                            question: true,
+                            type: true,
+                            options: true
+                        }
+                    },
+                    job: {
+                        select: {
+                            position: {
+                                select: {
+                                    name: true
+                                }
+                            },
+                            division: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+const questionnaireOptionsRemove = async (request) => {
+    const cookies = request.cookies;
+    if (!cookies?.refreshToken) {
+        throw new ResponseError(204, "No content!");
+    };
+    const refreshTkn = cookies.refreshToken;
+    const user = await prismaClient.user.findFirst({
+        where: {
+            token: refreshTkn,
+        },
+    });
+    if (!user) {
+        throw new ResponseError(204, "No content!");
+    };
+
+    return prismaClient.questionnaire.update({
+        where: {
+            id: parseInt(request.params.id),
+        },
+        data: {
+            options: {
+                disconnect: {
+                    id: parseInt(request.params.option),
+                },
+            }
+        }
+    });
+}
+
 export default {
     create,
     get,
     update,
     remove,
-    // templateQuestionRemove
+    questionnaireOptionsUpdate,
+    questionnaireOptionsRemove
 }

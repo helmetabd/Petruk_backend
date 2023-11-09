@@ -37,12 +37,31 @@ const getAll = async (req, res, next) => {
     }
 }
 
+const getJobArchived = async (req, res, next) => {
+    try {
+        const result = await jobService.getAll(req);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 const update = async (req, res, next) => {
     try {
-        // const username = req.user.username;
-        // const request = req.body;
-        // request.username = username;
         const result = await jobService.update(req);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const completed = async (req, res, next) => {
+    try {
+        const result = await jobService.completed(req);
         res.status(200).json({
             data: result
         });
@@ -67,6 +86,8 @@ export default {
     create,
     get,
     getAll,
+    getJobArchived,
     update,
+    completed,
     remove
 }

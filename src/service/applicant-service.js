@@ -125,133 +125,6 @@ const create = async (request) => {
     });
 }
 
-// const getByJob = async (request) => {
-//     const validateUser = validate(getApplicantValidation, request.user);
-
-//     const user = await prismaClient.user.findFirst({
-//         where: {
-//             username: validateUser
-//         },
-//         select: {
-//             id: true,
-//             role: true
-//         }
-//     });
-
-//     if (!user) {
-//         throw new ResponseError(404, "user is not found");
-//     }
-
-//     let { page = 1, limit = 10, search_query, direction = 'asc', orderFrom } = request.query //menghasilkan string
-//     let skip = (page - 1) * limit
-//     const countOptionts = {}
-//     const options = {
-//         take: parseInt(limit),
-//         skip: skip,
-//         orderBy: {
-//             application_date: 'desc'
-//         },
-//         select: {
-//             id: true,
-//             job: {
-//                 select: {
-//                     id: true,
-//                     division: {
-//                         select: {
-//                             name: true
-//                         }
-//                     },
-//                     position: {
-//                         select: {
-//                             name: true
-//                         }
-//                     }
-//                 }
-//             },
-//             application_date: true,
-//             interview_date: true,
-//             placed_date: true,
-//             status: true,
-//             description: true,
-//             user: {
-//                 select: {
-//                     name: true,
-//                     nickname: true
-//                 }
-//             }
-//         }
-//     }
-
-//     if (search_query) {
-//         options.where = {
-//             OR: [
-//                 {
-//                     job: {
-//                         position: {
-//                             name: {
-//                                 contains: search_query
-//                             }
-//                         }
-//                     }
-//                 },
-//                 {
-//                     job: {
-//                         division: {
-//                             name: {
-//                                 contains: search_query
-//                             }
-//                         }
-//                     }
-//                 },
-//                 {
-//                     user: {
-//                         name: {
-//                             contains: search_query
-//                         }
-//                     }
-//                 },
-//             ]
-//         }
-//         countOptionts.where = options.where
-//     }
-//     if (orderFrom) {
-//         const order = orderFrom
-//         options.orderBy = {
-//             [order]: direction || 'asc'
-//         }
-//     }
-
-//     if (user.role.name === 'USER') {
-//         options.where = {
-//             ...options.where,
-//             userId: user.id
-//         }
-//         countOptionts.where = options.where
-//     }
-
-//     // else if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
-//     //     options.where = null
-//     // }
-//     const applicant = await prismaClient.applicant.findMany(options);
-
-//     //informasi total data keseluruhan 
-//     const resultCount = await prismaClient.applicant.count(countOptionts)//integer jumlah total data user
-
-//     //generated total page
-//     const totalPage = Math.ceil(resultCount / limit)
-
-//     if (!applicant) {
-//         throw new ResponseError(404, "applicant is not found");
-//     }
-
-//     return {
-//         applicant,
-//         currentPage: page - 0,
-//         totalPage,
-//         resultCount
-//     };
-// }
-
 const getAll = async (request) => {
     const validateUser = validate(getApplicantValidation, request.user);
 
@@ -337,6 +210,11 @@ const getAll = async (request) => {
                         }
                     }
                 },
+                {
+                    status: {
+                        contains: search_query
+                    }
+                },
             ]
         }
         countOptionts.where = options.where
@@ -356,16 +234,30 @@ const getAll = async (request) => {
         countOptionts.where = options.where
     }
 
-    if (request.params.job && user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
+    if (request.params.job && (user.role.name === 'ADMIN' || user.role.name === 'SUPER')) {
         options.where = {
             ...options.where,
             jobId: parseInt(request.params.job)
         }
         countOptionts.where = options.where
+    } else if (request.url === '/api/applicant-archived' && (user.role.name === 'ADMIN' || user.role.name === 'SUPER')) {
+        options.where = {
+            ...options.where,
+            status: {
+                in: ['Rejected', 'Placed']
+            }
+        }
+        countOptionts.where = options.where
+    } else if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
+        options.where = {
+            ...options.where,
+            status: {
+                in: ['Submitted', 'Interview', 'Hold']
+            }
+        }
+        countOptionts.where = options.where
     }
-    // else if (user.role.name === 'ADMIN' || user.role.name === 'SUPER') {
-    //     options.where = null
-    // }
+
     const applicant = await prismaClient.applicant.findMany(options);
 
     //informasi total data keseluruhan 
@@ -476,6 +368,7 @@ const get = async (request) => {
                 description: true,
                 user: {
                     select: {
+                        id: true,
                         name: true,
                         nickname: true
                     }
@@ -511,6 +404,16 @@ const update = async (request) => {
         throw new ResponseError(204, "No content!");
     };
     const updateApplicant = validate(updateApplicantValidation, request.body);
+
+    // const before = await prismaClient.applicant.findUnique({
+    //     where: {
+    //         id: parseInt(request.params.id)
+    //     } 
+    // })
+
+    // if(before.status === 'Rejected'){
+    //     throw new ResponseError(403, "Rejected!");
+    // }
 
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 

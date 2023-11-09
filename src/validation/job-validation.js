@@ -41,18 +41,16 @@ const updateJobValidation = Joi.object({
     })),
     template: Joi.string().max(150).required(),
     test: Joi.string().max(150).required(),
-    // questionnaire: Joi.array().items(
-    //     Joi.object({
-    //         question: Joi.string().max(255).required()
-    //     })
-    // ).has(Joi.object({
-    //     question: Joi.string().max(255).required()
-    // })),
     updated_at: Joi.date()
+})
+
+const setCompletedValidation = Joi.object({
+    completed: Joi.boolean().required()
 })
 
 export {
     createJobValidation,
     getJobValidation,
-    updateJobValidation
+    updateJobValidation,
+    setCompletedValidation
 }

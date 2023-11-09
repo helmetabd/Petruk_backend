@@ -34,7 +34,14 @@ const createAdminValidation = Joi.object({
 });
 
 const loginUserValidation = Joi.object({
-    username: Joi.string().max(100).required(),
+    // username: [
+    //     Joi.string().max(100).required(),
+    //     Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).max(200).required(),
+    // ],
+    username: Joi.alternatives().try(
+        Joi.string().max(100),
+        Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).max(200),
+    ).required(),
     password: Joi.string().max(100).required(),
 });
 
@@ -48,11 +55,29 @@ const updateUserValidation = Joi.object({
     updated_at: Joi.date()
 })
 
+const requestPasswordValidation = Joi.object({
+    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).max(200).required(),
+})
+
+const resetPasswordValidation = Joi.object({
+    userId: Joi.number().integer().positive().required(),
+    password: Joi.string().max(100).required(),
+    token: Joi.string().max(255).required()
+})
+
+const verifyAccountValidation = Joi.object({
+    userId: Joi.number().integer().positive().required(),
+    email: Joi.string().max(255).required()
+})
+
 export {
     registerUserValidation,
     loginUserValidation,
     getUserValidation,
     updateUserValidation,
     createAdminValidation,
-    createSuperValidation
+    createSuperValidation,
+    requestPasswordValidation,
+    resetPasswordValidation,
+    verifyAccountValidation
 }
