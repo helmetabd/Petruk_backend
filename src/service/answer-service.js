@@ -9,57 +9,18 @@ const create = async (request, option) => {
         throw new ResponseError(204, "No content!");
     };
     const refreshTkn = cookies.refreshToken;
-    // console.log(refreshTkn);
     const user = await prismaClient.user.findFirst({
         where: {
             token: refreshTkn,
         },
     });
-    // console.log(user);
+
     if (!user) {
         throw new ResponseError(204, "No content!");
     };
 
-    // userSkill.userId = user.id;
-
     const updated = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
-    // userSkill.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
-
-    // const templates = await prismaClient.applicant.findUnique({
-    //     where: {
-    //         id: parseInt(request.params.id)
-    //     },
-    //     select: {
-    //         job: {
-    //             select: {
-    //                 template: {
-    //                     select: {
-    //                         id: true,
-    //                         questionnaire: true
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // })
-    // console.log(userAnswer.answer)
-    // const panjang = templates.job.template.questionnaire
-    // console.log(templates.job.template.questionnaire[0]);
-    // console.log(panjang.length);
-    // for (let index = 0; index < panjang.length; index++) {
-    //     const element = panjang[index];
-    //     const answer = userAnswer.answer[index];
-    //     console.log(element);
-    //     console.log(answer);
-    // }
-    // return prismaClient.answer.create({
-    //     data: {
-    //         applicantId: parseInt(request.params.id),
-    //         questionnaireId: element.id,
-    //         value: 
-    //     }
-    // })
     if (option === "answer") {
         const userAnswer = validate(answerValidation, request.body);
 
@@ -143,7 +104,7 @@ const get = async (username) => {
     }
 
     if (user.role.name === "USER") {
-        const skill = await prismaClient.skill.findMany({
+        const answer = await prismaClient.answer.findMany({
             where: {
                 users: {
                     some: {
@@ -157,25 +118,25 @@ const get = async (username) => {
             }
         });
 
-        if (!skill) {
+        if (!answer) {
             throw new ResponseError(404, "user is not found");
         }
 
-        return skill;
+        return answer;
 
     } else if (user.role.name === "ADMIN") {
-        const skill = await prismaClient.skill.findMany({
+        const answer = await prismaClient.answer.findMany({
             select: {
                 id: true,
                 name: true,
             }
         });
 
-        if (!skill) {
+        if (!answer) {
             throw new ResponseError(404, "user is not found");
         }
 
-        return skill;
+        return answer;
     }
 }
 

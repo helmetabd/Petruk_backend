@@ -56,7 +56,6 @@ const create = async (request) => {
     let option = {
         application_date: updated,
         status: 'Submitted',
-        // description: userApplicant.description,
         jobId: parseInt(request.params.id)
     }
 
@@ -75,9 +74,6 @@ const create = async (request) => {
             }
         }
     }
-
-
-    // userApplicant.users.updated_at = new Date((new Date().setHours(new Date().getHours() - (new Date().getTimezoneOffset() / 60)))).toISOString();
 
     return prismaClient.user.update({
         where: {
@@ -212,7 +208,7 @@ const getAll = async (request) => {
                 },
                 {
                     status: {
-                        contains: search_query
+                        equals: search_query
                     }
                 },
             ]

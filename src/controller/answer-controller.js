@@ -13,8 +13,6 @@ const create = async (req, res, next) => {
 }
 
 const get = async (req, res, next) => {
-    // console.log("zzzz")
-    // console.log(req.user);
     try {
         const username = req.user;
         const result = await answerService.get(username);
