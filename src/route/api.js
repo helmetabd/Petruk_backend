@@ -17,9 +17,9 @@ const userRouter = new express.Router();
 userRouter.use(authMiddleware);
 
 //user api
-userRouter.get('/api/users/current', userController.get);
-userRouter.patch('/api/users/update', userController.update);
-userRouter.delete('/api/users/logout', userController.logout);
+userRouter.get('/api/user', userController.get);
+userRouter.patch('/api/user', userController.update);
+userRouter.delete('/api/auth/logout', userController.logout);
 
 //education api
 userRouter.get('/api/education', educationController.get);

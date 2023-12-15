@@ -19,13 +19,13 @@ adminRouter.use(authMiddleware);
 adminRouter.use(roleMiddleware);
 
 //user api
-adminRouter.post('/api/admin/user', userController.create);
-adminRouter.get('/api/admin/current', userController.get);
-adminRouter.get('/api/admin/user/all', userController.getAll);
-adminRouter.patch('/api/admin/update/', userController.updateAdmin);
-adminRouter.patch('/api/admin/update/:id', userController.update);
-adminRouter.delete('/api/admin/logout', userController.logout);
-adminRouter.delete('/api/admin/remove/:id', userController.remove);
+adminRouter.post('/api/user/create', userController.create);
+adminRouter.get('/api/user', userController.get);
+adminRouter.get('/api/user/all', userController.getAll);
+adminRouter.patch('/api/user', userController.updateAdmin);
+adminRouter.patch('/api/user/update/:id', userController.update);
+adminRouter.delete('/api/auth/logout', userController.logout);
+adminRouter.delete('/api/user/remove/:id', userController.remove);
 
 //skill api
 adminRouter.get('/api/skill', skillController.get);
